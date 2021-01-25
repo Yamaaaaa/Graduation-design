@@ -1,6 +1,7 @@
 package com.example.recommend_service.Entity;
 
 import javax.persistence.*;
+import java.util.Date;
 import java.util.Objects;
 
 @Entity
@@ -10,6 +11,7 @@ public class UserFeatureEntity {
     private int userId;
     private int topicId;
     private Double degree;
+    private Date lastDate;
 
     @Id
     @Column(name = "user_id")
@@ -41,6 +43,12 @@ public class UserFeatureEntity {
         this.degree = degree;
     }
 
+    @Basic
+    @Column(name = "last_date")
+    public Date getLastDate(){return lastDate;}
+
+    public void setLastDate(Date lastDate){this.lastDate = lastDate;}
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -52,5 +60,14 @@ public class UserFeatureEntity {
     @Override
     public int hashCode() {
         return Objects.hash(userId, topicId, degree);
+    }
+
+    public UserFeatureEntity(){ }
+
+    public UserFeatureEntity(int userId, int topicId, Double degree, Date lastDate) {
+        this.userId = userId;
+        this.topicId = topicId;
+        this.degree = degree;
+        this.lastDate = lastDate;
     }
 }

@@ -50,7 +50,20 @@ public class PaperService {
         return getPaperListData(paperEntityList);
     }
 
-    List<PaperItemData> getPaperListData(List<PaperEntity> paperEntityList){
+    public List<PaperItemData> getPaperItemData(List<Integer> paperIdList){
+        List<PaperItemData> paperListData = new ArrayList<>();
+        for(Integer paperId: paperIdList){
+            Map<String, Object> map = new HashMap<>();
+            map.put("paper_id", paperId);
+            String url = HttpJob.generateRequestParameters("http", getPaperRecommendData, map);
+            PaperRecommendData paperRecommendData = restTemplate.getForObject(url, PaperRecommendData.class);
+            assert paperRecommendData != null;
+            paperListData.add(new PaperItemData(paperDao.findById((int)paperId), paperRecommendData));
+        }
+        return paperListData;
+    }
+
+    public List<PaperItemData> getPaperListData(List<PaperEntity> paperEntityList){
         List<PaperItemData> paperListData = new ArrayList<>();
         for(PaperEntity paperEntity: paperEntityList){
             Map<String, Object> map = new HashMap<>();

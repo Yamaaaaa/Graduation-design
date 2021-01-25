@@ -7,3 +7,11 @@ spring:
     username: root
     password: 213100
     driver-class-name: com.mysql.cj.jdbc.Driver
+
+http_pool:
+  max_total: 200
+  default_max_per_route: 100
+  connect_timeout: 5000
+  connection_request_timeout: 1000
+  socket_timeout: 65000
+  validate_after_inactivity: 2000

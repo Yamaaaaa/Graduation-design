@@ -1,7 +1,7 @@
 package com.example.recommend_service.Entity;
 
 import javax.persistence.*;
-import java.sql.Date;
+import java.util.Date;
 import java.util.Objects;
 
 @Entity
@@ -11,6 +11,7 @@ public class UserHistoryEntity {
     private int userId;
     private int paperId;
     private Date browseTime;
+    private boolean uncheck;
 
     @Id
     @Column(name = "user_id")
@@ -42,6 +43,12 @@ public class UserHistoryEntity {
         this.browseTime = browseTime;
     }
 
+    @Basic
+    @Column(name = "uncheck")
+    public boolean getUncheck(){return uncheck;}
+
+    public void setUncheck(boolean uncheck){this.uncheck = uncheck;}
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -53,5 +60,15 @@ public class UserHistoryEntity {
     @Override
     public int hashCode() {
         return Objects.hash(userId, paperId, browseTime);
+    }
+
+    public UserHistoryEntity() {
+    }
+
+    public UserHistoryEntity(int userId, int paperId, Date browseTime, boolean uncheck) {
+        this.userId = userId;
+        this.paperId = paperId;
+        this.browseTime = browseTime;
+        this.uncheck = uncheck;
     }
 }

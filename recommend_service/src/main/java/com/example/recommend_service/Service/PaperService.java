@@ -24,7 +24,7 @@ public class PaperService {
 
     String getTagNameUrl = "getTagNameUrl";
 
-    private Map<Integer, String> getPaperRecommendTag(Integer paper_id){
+    public Map<Integer, String> getPaperRecommendTag(Integer paper_id){
         List<Integer> recommendTagId = new ArrayList<>();
         for(PaperTagRelationEntity paperTagRelationEntity: paperTagRelationDao.findTop6ByPaperIdOrderByDegreeDesc(paper_id)){
             recommendTagId.add(paperTagRelationEntity.getTagId());

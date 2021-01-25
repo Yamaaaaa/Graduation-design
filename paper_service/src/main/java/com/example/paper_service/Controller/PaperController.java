@@ -29,6 +29,11 @@ public class PaperController {
         return paperService.getHotPaperList();
     }
 
+    @GetMapping("/paperItemData")
+    public List<PaperItemData> getPaperItemData(List<Integer> paperIdList){
+        return paperService.getPaperItemData(paperIdList);
+    }
+
     @GetMapping("/browseNum")
     public void addBrowseNum(@RequestParam int paper_id){
         paperService.increaseBrowseNum(paper_id);

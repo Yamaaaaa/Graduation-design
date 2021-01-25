@@ -53,4 +53,13 @@ public class PaperTagRelationEntity {
     public int hashCode() {
         return Objects.hash(paperId, tagId, degree);
     }
+
+    public PaperTagRelationEntity(int paperId, int tagId, Double degree) {
+        this.paperId = paperId;
+        this.tagId = tagId;
+        this.degree = degree;
+    }
+
+    public PaperTagRelationEntity() {
+    }
 }
