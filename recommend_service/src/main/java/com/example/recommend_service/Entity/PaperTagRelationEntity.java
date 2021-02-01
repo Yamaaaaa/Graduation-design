@@ -10,6 +10,7 @@ public class PaperTagRelationEntity {
     private int paperId;
     private int tagId;
     private Double degree;
+    private int tagNum;
 
     @Id
     @Column(name = "paper_id")
@@ -41,6 +42,15 @@ public class PaperTagRelationEntity {
         this.degree = degree;
     }
 
+    @Column(name = "tag_num")
+    public int getTagNum() {
+        return tagNum;
+    }
+
+    public void setTagNum(int tagNum) {
+        this.tagNum = tagNum;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -54,10 +64,11 @@ public class PaperTagRelationEntity {
         return Objects.hash(paperId, tagId, degree);
     }
 
-    public PaperTagRelationEntity(int paperId, int tagId, Double degree) {
+    public PaperTagRelationEntity(int paperId, int tagId, Double degree, int tagNum) {
         this.paperId = paperId;
         this.tagId = tagId;
         this.degree = degree;
+        this.tagNum = 1;
     }
 
     public PaperTagRelationEntity() {

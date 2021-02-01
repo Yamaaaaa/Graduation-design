@@ -8,4 +8,5 @@ import java.util.List;
 
 public interface PaperFeatureDao extends JpaRepository<PaperFeatureEntity, PaperFeatureEntityPK> {
     List<PaperFeatureEntity> findByPaperId(int paperId);
+    List<PaperFeatureEntity> findByPaperIdAndDegreeGreaterThanEqual(int paperId, float degree);
 }

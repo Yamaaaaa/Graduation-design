@@ -52,4 +52,13 @@ public class PaperInfoEntity {
     public int hashCode() {
         return Objects.hash(id, taggedNum, uncheckNum);
     }
+
+    public PaperInfoEntity() {
+    }
+
+    public PaperInfoEntity(int id, Integer taggedNum, Integer uncheckNum) {
+        this.id = id;
+        this.taggedNum = taggedNum;
+        this.uncheckNum = uncheckNum;
+    }
 }

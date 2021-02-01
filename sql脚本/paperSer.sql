@@ -29,3 +29,4 @@ CREATE TABLE SYS_INFO(
 
 INSERT INTO SYS_INFO values("paper_hot_tw", 7);
 INSERT INTO SYS_INFO values("paper_hot_num", 20);
+INSERT INTO SYS_INFO values("current_ser_num", 0);

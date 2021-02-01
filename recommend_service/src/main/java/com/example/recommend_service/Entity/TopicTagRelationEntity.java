@@ -53,4 +53,13 @@ public class TopicTagRelationEntity {
     public int hashCode() {
         return Objects.hash(topicId, tagId, degree);
     }
+
+    public TopicTagRelationEntity() {
+    }
+
+    public TopicTagRelationEntity(int topicId, int tagId, Double degree) {
+        this.topicId = topicId;
+        this.tagId = tagId;
+        this.degree = degree;
+    }
 }

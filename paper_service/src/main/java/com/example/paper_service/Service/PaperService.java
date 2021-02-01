@@ -2,6 +2,7 @@ package com.example.paper_service.Service;
 
 import com.example.paper_service.Dao.PaperDao;
 import com.example.paper_service.Dao.PaperHotDao;
+import com.example.paper_service.Dao.PaperSimpleDao;
 import com.example.paper_service.Dao.SysInfoDao;
 import com.example.paper_service.Entity.*;
 import com.example.paper_service.Util.HttpJob;
@@ -28,16 +29,14 @@ public class PaperService {
     @Autowired
     SysInfoDao sysInfoDao;
     @Autowired
+    PaperSimpleDao paperSimpleDao;
+    @Autowired
     private RestTemplate restTemplate;
 
     String getPaperRecommendData = "getPaperRecommendData";
 
-    public List<PaperSimpleData> getPaperSimpleDataList(List<Integer> paperIDList){
-        List<PaperSimpleData> paperSimpleDataList = new ArrayList<>();
-        for(Integer paperID : paperIDList) {
-            paperSimpleDataList.add(new PaperSimpleData(paperDao.findById((int)paperID)));
-        }
-        return paperSimpleDataList;
+    public List<PaperSimpleEntity> getPaperSimpleDataList(List<Integer> paperIDList){
+        return paperSimpleDao.findByIdList(paperIDList);
     }
 
     public String getPaperData(int paper_id){
@@ -81,33 +80,37 @@ public class PaperService {
         return getPaperListData(paperEntityList);
     }
 
+    public List<PaperEntity> getManagePaperPage(int pageNum, int pageSize){
+        return paperDao.findAll(PageRequest.of(pageNum, pageSize)).getContent();
+    }
+
+
     public void increaseBrowseNum(int paperID){
         PaperEntity paperEntity = paperDao.findById(paperID);
         paperEntity.setBrowseNum(paperEntity.getRecentBrowseNum()+1);
-        paperEntity.setRenew(false);
         paperDao.save(paperEntity);
 
-        PaperHotEntity paperHotEntity = paperHotDao.findByPaperIdAndSerNum(paperID, paperEntity.getCurrentSerial());
+        PaperHotEntity paperHotEntity = paperHotDao.findByPaperIdAndSerNum(paperID, sysInfoDao.findByName("current_ser_num").getVal());
         paperHotEntity.setBrowseNum(paperHotEntity.getBrowseNum()+1);
         paperHotDao.save(paperHotEntity);
     }
 
     public  void updatePaperRecentBrowseNum(){
         List<Integer> IdList = paperDao.findAllId();
+        SysInfoEntity sysInfoEntity = sysInfoDao.findByName("current_ser_num");
+        int currentSerNum = sysInfoEntity.getVal();
+        int paperHotTW = sysInfoDao.findByName("paper_hot_tw").getVal();
+        int newSerNum = (currentSerNum+1)%paperHotTW;
+
         for(Integer id :IdList){
             PaperEntity paperEntity = paperDao.findById((int)id);
-            if(paperEntity.getRenew())
-                return ;
-            int paperHotTimeWindow = sysInfoDao.findByName("paper_hot_tw").getVal();
-            int currentSerialNum = paperEntity.getCurrentSerial();
-            int freeSerialNum = (currentSerialNum+paperHotTimeWindow)%(paperHotTimeWindow+1);
-            int recentBrowseNum = paperEntity.getRecentBrowseNum();
-            int increase = paperHotDao.findByPaperIdAndSerNum(id, currentSerialNum).getBrowseNum();
-            int decrease = paperHotDao.findByPaperIdAndSerNum(id, freeSerialNum).getBrowseNum();
-            recentBrowseNum = recentBrowseNum + increase - decrease;
-            paperEntity.setRecentBrowseNum(recentBrowseNum);
-            paperEntity.setCurrentSerial(freeSerialNum);
-            paperEntity.setRenew(true);
+            paperEntity.setRecentBrowseNum(paperHotDao.getSumBrowseNumByPaperId(id));
+
+            PaperHotEntity paperHotEntity = paperHotDao.findByPaperIdAndSerNum(id, newSerNum);
+            paperHotEntity.setBrowseNum(0);
+            paperHotDao.save(paperHotEntity);
+            sysInfoEntity.setVal(newSerNum);
+            sysInfoDao.save(sysInfoEntity);
             paperDao.save(paperEntity);
         }
     }

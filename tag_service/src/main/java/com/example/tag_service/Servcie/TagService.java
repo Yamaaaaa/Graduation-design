@@ -1,6 +1,8 @@
 package com.example.tag_service.Servcie;
 
+import com.example.tag_service.Dao.SameTagDao;
 import com.example.tag_service.Dao.TagDao;
+import com.example.tag_service.Entity.SameTagEntity;
 import com.example.tag_service.Entity.TagEntity;
 import com.example.tag_service.Util.HttpJob;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,9 +17,12 @@ public class TagService {
     @Autowired
     TagDao tagDao;
     @Autowired
+    SameTagDao sameTagDao;
+    @Autowired
     private RestTemplate restTemplate;
 
     private String addPaperTagUrl = "addPaperTag";
+    private String mergeTagUrl = "mergeTag";
 
     public Map<Integer, String> getTagList(List<Integer> tagIDList){
         Map<Integer, String> tagList = new HashMap<Integer, String>();
@@ -36,8 +41,14 @@ public class TagService {
                 tagEntity.setUsedNum(tagEntity.getUsedNum() + 1);
                 tagEntity.setLastActiveTime(new Date());
 
-            }else
+            }else if(sameTagDao.existsByName(tag)){
+                tagEntity = tagDao.findById(sameTagDao.findByName(tag).getSameTagId());
+                tagEntity.setUsedNum(tagEntity.getUsedNum() + 1);
+                tagEntity.setLastActiveTime(new Date());
+            }else{
+
                 tagEntity = new TagEntity(tag, 1, new Date());
+            }
             tagEntity = tagDao.save(tagEntity);
             tagId.add(tagEntity.getId());
         }
@@ -53,5 +64,23 @@ public class TagService {
     public List<TagEntity> pageTag(int pageNum, int pageSize){
         List<TagEntity> tagEntities = tagDao.findAll(PageRequest.of(pageNum, pageSize)).getContent();
         return tagEntities;
+    }
+
+    public void mergeTag(int goalTag, int operateTag){
+        TagEntity tagEntity = tagDao.findById(operateTag);
+        sameTagDao.save(new SameTagEntity(tagEntity.getName(), goalTag));
+        tagDao.deleteById(operateTag);
+        Map<String, Object> data = new HashMap<>();
+        data.put("goalTag", goalTag);
+        data.put("operateTag", operateTag);
+        restTemplate.getForObject(HttpJob.generateRequestParameters("http", mergeTagUrl, data), void.class);
+    }
+
+    public TagEntity getTagInfo(int tagId){
+        return tagDao.findById(tagId);
+    }
+
+    public List<String> getSameTagData(int tagId){
+        return sameTagDao.getSameTagNameByTagId(tagId);
     }
 }

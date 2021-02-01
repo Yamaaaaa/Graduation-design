@@ -1,5 +1,8 @@
 package com.example.recommend_service.Controller;
 
+import com.example.recommend_service.Entity.PaperFeatureData;
+import com.example.recommend_service.Entity.PaperInfoEntity;
+import com.example.recommend_service.Entity.TopicTagData;
 import com.example.recommend_service.Entity.UserHistoryEntity;
 import com.example.recommend_service.Service.PaperService;
 import com.example.recommend_service.Service.TagService;
@@ -45,7 +48,48 @@ public class RecommendController {
     }
 
     @PostMapping("/addPaperTag")
-    void addPaperTag(int paperId, List<String> tags){
+    void addPaperTag(@RequestBody Integer paperId,@RequestBody List<Integer> tags){
+        paperService.addPaperTag(paperId, tags);
+    }
 
+    @PostMapping("/cluster")
+    void cluster(@RequestBody Integer topicNum){
+        paperService.IdaTopicCluster(topicNum);
+        tagService.refreshTopic(topicNum);
+    }
+
+    @PostMapping("/editTopicName")
+    void editTopicName(@RequestBody Integer topicId, @RequestBody String name){
+        tagService.editTopicName(topicId, name);
+    }
+
+    @GetMapping("/getTagPaperData")
+    List<PaperInfoEntity> getTagPaperData(){
+        return paperService.getTagPaperData();
+    }
+
+    @GetMapping("/getTopicTagData")
+    List<TopicTagData> getTopicTagData(){
+        return tagService.getTopicTagData();
+    }
+
+    @GetMapping("/getTagRelatePaper")
+    List<Integer> getTagRelatePaper(@RequestParam int tagId, @RequestParam int pageNum, @RequestParam int pageSize){
+        return tagService.getTagRelatePaper(tagId, pageNum, pageSize);
+    }
+
+    @GetMapping("/getPaperFeatureData")
+    List<PaperFeatureData> getPaperFeatureData(@RequestParam int paperId){
+        return paperService.getPaperFeatureData(paperId);
+    }
+
+    @GetMapping("/getUncheckList")
+    List<Integer> getUncheckList(){
+        return tagService.getUncheckList();
+    }
+
+    @GetMapping("/getUncheckTag")
+    List<Integer> getUncheckTag(@RequestParam int paperId){
+        return tagService.getUncheckTagId(paperId);
     }
 }

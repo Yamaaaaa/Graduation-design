@@ -27,4 +27,12 @@ public class TopicEntity {
     public void setName(String name) {
         this.name = name;
     }
+
+    public TopicEntity() {
+    }
+
+    public TopicEntity(int id) {
+        this.id = id;
+        this.name = "未命名主题"+id;
+    }
 }

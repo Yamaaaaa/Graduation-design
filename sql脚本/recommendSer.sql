@@ -86,3 +86,5 @@ INSERT INTO SYS_INFO values("user_action_date", 2);
 INSERT INTO SYS_INFO values("user_action_tw", 1);
 INSERT INTO SYS_INFO values("half_life", 1);
 INSERT INTO SYS_INFO values("half_life_k", 1);
+INSERT INTO SYS_INFO values("paper_uncheck_num", 10);
+INSERT INTO SYS_INFO values("paper_tag_th", 3);

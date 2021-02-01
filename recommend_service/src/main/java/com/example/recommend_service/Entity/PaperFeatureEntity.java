@@ -53,4 +53,13 @@ public class PaperFeatureEntity {
     public int hashCode() {
         return Objects.hash(paperId, topicId, degree);
     }
+
+    public PaperFeatureEntity() {
+    }
+
+    public PaperFeatureEntity(int paperId, int topicId, Double degree) {
+        this.paperId = paperId;
+        this.topicId = topicId;
+        this.degree = degree;
+    }
 }

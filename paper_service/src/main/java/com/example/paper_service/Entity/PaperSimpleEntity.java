@@ -5,10 +5,9 @@ import java.util.Objects;
 
 @Entity
 @Table(name = "paper", schema = "paper")
-public class PaperEntity {
+public class PaperSimpleEntity {
     private int id;
     private String title;
-    private String abst;
     private Integer browseNum;
     private Integer recentBrowseNum;
 
@@ -30,16 +29,6 @@ public class PaperEntity {
 
     public void setTitle(String title) {
         this.title = title;
-    }
-
-    @Basic
-    @Column(name = "abst")
-    public String getAbst() {
-        return abst;
-    }
-
-    public void setAbst(String abst) {
-        this.abst = abst;
     }
 
     @Basic
@@ -66,12 +55,24 @@ public class PaperEntity {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        PaperEntity that = (PaperEntity) o;
-        return id == that.id && Objects.equals(title, that.title) && Objects.equals(abst, that.abst) && Objects.equals(browseNum, that.browseNum) && Objects.equals(recentBrowseNum, that.recentBrowseNum);
+
+        PaperSimpleEntity that = (PaperSimpleEntity) o;
+
+        if (id != that.id) return false;
+        if (!Objects.equals(title, that.title)) return false;
+        if (!Objects.equals(browseNum, that.browseNum)) return false;
+        if (!Objects.equals(recentBrowseNum, that.recentBrowseNum))
+            return false;
+
+        return true;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, title, abst, browseNum, recentBrowseNum);
+        int result = id;
+        result = 31 * result + (title != null ? title.hashCode() : 0);
+        result = 31 * result + (browseNum != null ? browseNum.hashCode() : 0);
+        result = 31 * result + (recentBrowseNum != null ? recentBrowseNum.hashCode() : 0);
+        return result;
     }
 }

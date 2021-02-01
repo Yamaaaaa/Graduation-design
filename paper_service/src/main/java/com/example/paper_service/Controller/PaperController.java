@@ -2,7 +2,7 @@ package com.example.paper_service.Controller;
 
 import com.example.paper_service.Entity.PaperEntity;
 import com.example.paper_service.Entity.PaperItemData;
-import com.example.paper_service.Entity.PaperSimpleData;
+import com.example.paper_service.Entity.PaperSimpleEntity;
 import com.example.paper_service.Service.PaperService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -20,7 +20,7 @@ public class PaperController {
     }
 
     @PostMapping("/paperSimpleData")
-    public List<PaperSimpleData> getPaperSimpleData(@RequestBody List<Integer> paperIdList){
+    public List<PaperSimpleEntity> getPaperSimpleData(@RequestBody List<Integer> paperIdList){
         return paperService.getPaperSimpleDataList(paperIdList);
     }
 
@@ -42,5 +42,10 @@ public class PaperController {
     @GetMapping("/paperPage")
     public List<PaperItemData> getPaperPage(@RequestParam int page_num, @RequestParam int page_size){
         return paperService.getPaperPage(page_num, page_size);
+    }
+
+    @GetMapping("/managePaperPage")
+    public List<PaperEntity> getManagePaperPage(@RequestParam int page_num, @RequestParam int page_size){
+        return paperService.getManagePaperPage(page_num, page_size);
     }
 }
