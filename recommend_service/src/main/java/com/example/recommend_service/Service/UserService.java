@@ -1,10 +1,7 @@
 package com.example.recommend_service.Service;
 
 import com.example.recommend_service.Dao.*;
-import com.example.recommend_service.Entity.PaperFeatureEntity;
-import com.example.recommend_service.Entity.UserFeatureEntity;
-import com.example.recommend_service.Entity.UserFeatureInfoEntity;
-import com.example.recommend_service.Entity.UserHistoryEntity;
+import com.example.recommend_service.Entity.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Component;
@@ -19,6 +16,8 @@ public class UserService {
     PaperFeatureDao paperFeatureDao;
     @Autowired
     UserFeatureInfoDao userFeatureInfoDao;
+    @Autowired
+    TopicDao topicDao;
     @Autowired
     SysInfoDao sysInfoDao;
     @Autowired
@@ -132,5 +131,15 @@ public class UserService {
         da = calendar.getTime();
 
         userHistoryDao.deleteByBrowseTimeBefore(da);
+    }
+
+    public void initUserTopic(int userId, List<Integer> topics){
+        for(Integer topic: topics) {
+            userFeatureDao.save(new UserFeatureEntity(userId, topic, 1.0, new Date()));
+        }
+    }
+
+    public List<TopicEntity> getAllTopic(){
+        return topicDao.findAll();
     }
 }

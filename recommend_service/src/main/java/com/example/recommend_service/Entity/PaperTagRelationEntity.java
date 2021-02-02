@@ -11,6 +11,7 @@ public class PaperTagRelationEntity {
     private int tagId;
     private Double degree;
     private int tagNum;
+    private boolean renew;
 
     @Id
     @Column(name = "paper_id")
@@ -51,6 +52,15 @@ public class PaperTagRelationEntity {
         this.tagNum = tagNum;
     }
 
+    @Column(name = "renew")
+    public boolean getRenew() {
+        return renew;
+    }
+
+    public void setRenew(boolean tagNum) {
+        this.renew = renew;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -64,11 +74,19 @@ public class PaperTagRelationEntity {
         return Objects.hash(paperId, tagId, degree);
     }
 
+    public PaperTagRelationEntity(int paperId, int tagId) {
+        this.paperId = paperId;
+        this.tagId = tagId;
+        this.tagNum = 1;
+        this.renew = false;
+    }
+
     public PaperTagRelationEntity(int paperId, int tagId, Double degree, int tagNum) {
         this.paperId = paperId;
         this.tagId = tagId;
         this.degree = degree;
-        this.tagNum = 1;
+        this.tagNum = tagNum;
+        this.renew = true;
     }
 
     public PaperTagRelationEntity() {

@@ -15,15 +15,6 @@ CREATE TABLE PAPER_INFO(
     primary key (id)
 );
 
-CREATE TABLE TAG_PAPER(
-    id int auto_increment,
-    paper_id int,
-    tag_id int,
-    tag_num int,
-    primary key (id),
-    foreign key (paper_id) REFERENCES PAPER_INFO(id)
-);
-
 CREATE TABLE PAPER_TAG_RELATION(
     paper_id int,
     tag_id int,

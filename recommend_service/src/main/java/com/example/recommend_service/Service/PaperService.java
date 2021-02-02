@@ -10,10 +10,7 @@ import org.springframework.web.client.RestTemplate;
 
 import java.io.*;
 import java.lang.reflect.Type;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Component
 public class PaperService {
@@ -33,6 +30,7 @@ public class PaperService {
     private RestTemplate restTemplate;
 
     String getTagNameUrl = "getTagNameUrl";
+    String updatePaperTagIndex = "updatePaperTagIndex";
 
     public Map<Integer, String> getPaperRecommendTag(Integer paper_id){
         List<Integer> recommendTagId = new ArrayList<>();
@@ -41,7 +39,7 @@ public class PaperService {
         }
         String sTagName = restTemplate.postForObject(getTagNameUrl, recommendTagId, String.class);
         System.out.println("tagNameList:"+recommendTagId);
-        Type mapType = new TypeToken<Map<Integer,String>>(){}.getType();
+        Type mapType = new TypeToken<List<String>>(){}.getType();
         Gson gson = new Gson();
         return gson.fromJson(sTagName,mapType);
     }
@@ -53,16 +51,43 @@ public class PaperService {
             int tagNum = paperInfoEntity.getTaggedNum();
             if(paperTagRelationDao.existsByPaperIdAndTagId(paperId, tagId)) {
                 PaperTagRelationEntity paperTagRelationEntity = paperTagRelationDao.findByPaperIdAndTagId(paperId, tagId);
-                paperTagRelationEntity.setDegree((double) ((paperTagRelationEntity.getTagNum() + 1)/tagNum));
                 paperTagRelationEntity.setTagNum(paperTagRelationEntity.getTagNum() + 1);
                 paperTagRelationDao.save(paperTagRelationEntity);
             }else{
-                paperTagRelationDao.save(new PaperTagRelationEntity(paperId, tagId, (double) (1/tagNum), 1));
+                paperTagRelationDao.save(new PaperTagRelationEntity(paperId, tagId));
             }
         }
-
+        paperInfoEntity.setTaggedNum(paperInfoEntity.getTaggedNum()+1);
         paperInfoEntity.setUncheckNum(paperInfoEntity.getUncheckNum()+1);
         paperInfoDao.save(paperInfoEntity);
+    }
+
+    public void updatePaperTag(){
+        Set<Integer> needUpdateIndexPaper = new HashSet<>();
+        double paper_tag_th = (double)sysInfoDao.findByName("paper_tag_th").getVal()/10;
+
+        for(PaperTagRelationEntity paperTagRelationEntity: paperTagRelationDao.findAllByRenew(false)){
+            int tagNum = paperInfoDao.findById(paperTagRelationEntity.getPaperId()).getTaggedNum();
+            double degree = (double)paperTagRelationEntity.getTagNum()/tagNum;
+            double oldDegree = paperTagRelationEntity.getDegree();
+            paperTagRelationEntity.setDegree(degree);
+            if(0>(oldDegree-paper_tag_th)*(degree-paper_tag_th)){
+                needUpdateIndexPaper.add(paperTagRelationEntity.getPaperId());
+            }
+            paperTagRelationEntity.setRenew(true);
+        }
+
+        List<Map<String, String>> papersNewTagIndex = new ArrayList<>();
+        for(Integer paperId: needUpdateIndexPaper){
+            Map<String, String> paperNewTagIndex = new HashMap<>();
+            paperNewTagIndex.put("id", "" + paperId);
+            List<Integer> tagIdList = paperTagRelationDao.findTagIdByPaperIdAndDegreeGreaterThanEqual(paperId, paper_tag_th);
+            String sTagName = restTemplate.postForObject(getTagNameUrl, tagIdList, String.class);
+            System.out.println("tagNameList:"+tagIdList);
+            paperNewTagIndex.put("tags", sTagName);
+            papersNewTagIndex.add(paperNewTagIndex);
+        }
+        restTemplate.postForObject(updatePaperTagIndex, papersNewTagIndex, void.class);
     }
 
     public void IdaTopicCluster(int nTopics){
@@ -106,6 +131,7 @@ public class PaperService {
         } catch (IOException e1) {
             e1.printStackTrace();
         }
+
         String[] groupNums = line.split(" ");
         int count = 0;
         for(int i=0; i<paperIdList.size(); ++i){
@@ -113,11 +139,13 @@ public class PaperService {
                 paperFeatureDao.save(new PaperFeatureEntity(paperIdList.get(i), j, Double.parseDouble(groupNums[count++])));
             }
         }
+
         for(int i=0; i<nTopics; ++i){
             for(int j=0; j<tagIdList.size(); ++j){
                 topicTagRelationDao.save(new TopicTagRelationEntity(i, tagIdList.get(j), Double.parseDouble(groupNums[count++])));
             }
         }
+
     }
 
     public List<PaperInfoEntity> getTagPaperData(){

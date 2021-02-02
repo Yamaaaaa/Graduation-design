@@ -1,17 +1,15 @@
-package com.example.recommend_service.Entity;
+package com.example.tag_service.Entity;
 
-import javax.persistence.*;
+import javax.persistence.Column;
+import javax.persistence.Id;
+import java.io.Serializable;
 
-@Entity
-@Table(name = "tag_paper", schema = "recommend", catalog = "")
-@IdClass(TagPaperEntityPK.class)
-public class TagPaperEntity {
+public class TagPaperEntityPK implements Serializable {
     private int paperId;
     private int tagId;
-    private Byte uncheck;
 
-    @Id
     @Column(name = "paper_id")
+    @Id
     public int getPaperId() {
         return paperId;
     }
@@ -20,8 +18,8 @@ public class TagPaperEntity {
         this.paperId = paperId;
     }
 
-    @Id
     @Column(name = "tag_id")
+    @Id
     public int getTagId() {
         return tagId;
     }
@@ -30,26 +28,15 @@ public class TagPaperEntity {
         this.tagId = tagId;
     }
 
-    @Basic
-    @Column(name = "uncheck")
-    public Byte getUncheck() {
-        return uncheck;
-    }
-
-    public void setUncheck(Byte uncheck) {
-        this.uncheck = uncheck;
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        TagPaperEntity that = (TagPaperEntity) o;
+        TagPaperEntityPK that = (TagPaperEntityPK) o;
 
         if (paperId != that.paperId) return false;
         if (tagId != that.tagId) return false;
-        if (uncheck != null ? !uncheck.equals(that.uncheck) : that.uncheck != null) return false;
 
         return true;
     }
@@ -58,7 +45,6 @@ public class TagPaperEntity {
     public int hashCode() {
         int result = paperId;
         result = 31 * result + tagId;
-        result = 31 * result + (uncheck != null ? uncheck.hashCode() : 0);
         return result;
     }
 }

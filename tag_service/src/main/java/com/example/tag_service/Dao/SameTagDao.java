@@ -12,4 +12,7 @@ public interface SameTagDao extends JpaRepository<SameTagEntity, SameTagEntityPK
     boolean existsByName(String name);
     @Query(value = "select name from same_tag where id=?1", nativeQuery = true)
     List<String> getSameTagNameByTagId(int tagId);
+
+    @Query(value = "select distinct same_tag_id from same_tag where name contains ?1", nativeQuery = true)
+    List<Integer> findAllByNameContains(String name);
 }

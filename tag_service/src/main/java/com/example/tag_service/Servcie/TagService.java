@@ -2,8 +2,10 @@ package com.example.tag_service.Servcie;
 
 import com.example.tag_service.Dao.SameTagDao;
 import com.example.tag_service.Dao.TagDao;
+import com.example.tag_service.Dao.TagPaperDao;
 import com.example.tag_service.Entity.SameTagEntity;
 import com.example.tag_service.Entity.TagEntity;
+import com.example.tag_service.Entity.TagPaperEntity;
 import com.example.tag_service.Util.HttpJob;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
@@ -19,40 +21,16 @@ public class TagService {
     @Autowired
     SameTagDao sameTagDao;
     @Autowired
+    TagPaperDao tagPaperDao;
+    @Autowired
     private RestTemplate restTemplate;
 
     private String addPaperTagUrl = "addPaperTag";
     private String mergeTagUrl = "mergeTag";
+    private String deleteTagRelation = "deleteTag";
 
-    public Map<Integer, String> getTagList(List<Integer> tagIDList){
-        Map<Integer, String> tagList = new HashMap<Integer, String>();
-        for(Integer tagID: tagIDList){
-            tagList.put(tagID, tagDao.findById((int)tagID).getName());
-        }
-        return tagList;
-    }
-
-    public void addTag(int paperId, List<String> tags){
-        List<Integer> tagId = new ArrayList<>();
-        for(String tag: tags){
-            TagEntity tagEntity;
-            if(tagDao.existsByName(tag)){
-                tagEntity = tagDao.findByName(tag);
-                tagEntity.setUsedNum(tagEntity.getUsedNum() + 1);
-                tagEntity.setLastActiveTime(new Date());
-
-            }else if(sameTagDao.existsByName(tag)){
-                tagEntity = tagDao.findById(sameTagDao.findByName(tag).getSameTagId());
-                tagEntity.setUsedNum(tagEntity.getUsedNum() + 1);
-                tagEntity.setLastActiveTime(new Date());
-            }else{
-
-                tagEntity = new TagEntity(tag, 1, new Date());
-            }
-            tagEntity = tagDao.save(tagEntity);
-            tagId.add(tagEntity.getId());
-        }
-        restTemplate.postForObject(addPaperTagUrl, tagId, void.class);
+    public List<String> getTagList(List<Integer> tagIDList){
+        return tagDao.getNameByIdList(tagIDList);
     }
 
     public void deleteTag(List<Integer> tags){
@@ -82,5 +60,66 @@ public class TagService {
 
     public List<String> getSameTagData(int tagId){
         return sameTagDao.getSameTagNameByTagId(tagId);
+    }
+
+    public List<Integer> getUncheckList(){
+        return tagPaperDao.getAllPaperId();
+    }
+
+    public List<Integer> getUncheckTagId(int paperId){
+        return tagPaperDao.findAllByPaperId(paperId);
+    }
+
+    public void checkTagPaper(int paperId, Set<String> tags){
+        tagPaperDao.deleteByPaperId(paperId);
+        List<Integer> tagId = new ArrayList<>();
+        tagId.add(paperId);
+        for(String tag: tags){
+            TagEntity tagEntity;
+            if(tagDao.existsByName(tag)){
+                tagEntity = tagDao.findByName(tag);
+                tagEntity.setUsedNum(tagEntity.getUsedNum() + 1);
+                tagEntity.setLastActiveTime(new Date());
+
+            }else{
+                tagEntity = new TagEntity(tag, 1, new Date());
+            }
+            tagEntity = tagDao.save(tagEntity);
+            tagId.add(tagEntity.getId());
+        }
+        restTemplate.postForObject(addPaperTagUrl, tagId, void.class);
+    }
+
+    public void addTag(int paperId, List<String> tags){
+        for(String tag: tags){
+            tagPaperDao.save(new TagPaperEntity(paperId, tag));
+        }
+    }
+
+    public void refreshTag(){
+        //int userActionDate = sysInfoDao.findByName("user_action_date").getVal();
+        Date da = new Date();//获取当前时间
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(da);//把当前时间赋给日历
+        calendar.add(calendar.MONTH, -2);
+        da = calendar.getTime();
+        List<TagEntity> tagEntities = tagDao.findByLastActiveTimeBeforeAndUsedNumLessThan(da, 10);
+        List<Integer> tagIdList = new ArrayList<>();
+        for(TagEntity tagEntity: tagEntities){
+            tagIdList.add(tagEntity.getId());
+        }
+        restTemplate.postForObject(deleteTagRelation, tagIdList, void.class);
+        tagDao.deleteByLastActiveTimeBeforeAndUsedNumLessThan(da, 10);
+    }
+
+    public List<TagEntity> searchTag(String searchText){
+        List<TagEntity> searchResult = new ArrayList<>();
+        searchResult.addAll(tagDao.findAllByNameContains(searchText));
+        List<Integer> tagIdList = sameTagDao.findAllByNameContains(searchText);
+        for(Integer tagId: tagIdList){
+            searchResult.add(tagDao.findById((int)tagId));
+        }
+
+        return searchResult;
     }
 }

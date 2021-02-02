@@ -15,3 +15,9 @@ CREATE TABLE SAME_TAG(
     same_tag_id int,
     primary key (name, id)
 );
+
+CREATE TABLE TAG_PAPER(
+    paper_id int,
+    tag_name varchar(10),
+    primary key (paper_id, tag_name)
+);

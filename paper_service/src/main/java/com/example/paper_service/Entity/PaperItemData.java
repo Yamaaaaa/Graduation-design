@@ -9,8 +9,8 @@ public class PaperItemData {
     int paper_id;
     String title;
     int totalBrowseNum;
-    List<Integer> topics;
-    Map<Integer, String> tagList = new HashMap<>();
+//    List<Integer> topics;
+//    Map<Integer, String> tagList = new HashMap<>();
 
     public void setTitle(String title) {
         this.title = title;
@@ -35,30 +35,30 @@ public class PaperItemData {
     public void setTotalBrowseNum(int totalBrowseNum) {
         this.totalBrowseNum = totalBrowseNum;
     }
+//
+//    public Map<Integer, String> getTagList() {
+//        return tagList;
+//    }
+//
+//    public void setTagList(Map<Integer, String> tagList) {
+//        this.tagList = tagList;
+//    }
+//
+//    public void setTopics(List<Integer> topics) {
+//        this.topics = topics;
+//    }
+//
+//    public List<Integer> getTopics() {
+//        return topics;
+//    }
 
-    public Map<Integer, String> getTagList() {
-        return tagList;
-    }
-
-    public void setTagList(Map<Integer, String> tagList) {
-        this.tagList = tagList;
-    }
-
-    public void setTopics(List<Integer> topics) {
-        this.topics = topics;
-    }
-
-    public List<Integer> getTopics() {
-        return topics;
-    }
-
-    public PaperItemData(PaperEntity paperEntity, PaperRecommendData paperRecommendData) {
+    public PaperItemData(PaperEntity paperEntity) {
         this.paper_id = paperEntity.getId();
 
         this.title = paperEntity.getTitle();
         this.totalBrowseNum = paperEntity.getBrowseNum();
-        this.tagList = paperRecommendData.getTags();
-        this.topics = paperRecommendData.getTopics();
+//        this.tagList = paperRecommendData.getTags();
+//        this.topics = paperRecommendData.getTopics();
     }
 
     public PaperItemData(){}

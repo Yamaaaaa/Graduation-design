@@ -48,7 +48,9 @@ public class RecommendController {
     }
 
     @PostMapping("/addPaperTag")
-    void addPaperTag(@RequestBody Integer paperId,@RequestBody List<Integer> tags){
+    void addPaperTag(@RequestBody List<Integer> tags){
+        int paperId = tags.get(0);
+        tags.remove(0);
         paperService.addPaperTag(paperId, tags);
     }
 
@@ -83,13 +85,4 @@ public class RecommendController {
         return paperService.getPaperFeatureData(paperId);
     }
 
-    @GetMapping("/getUncheckList")
-    List<Integer> getUncheckList(){
-        return tagService.getUncheckList();
-    }
-
-    @GetMapping("/getUncheckTag")
-    List<Integer> getUncheckTag(@RequestParam int paperId){
-        return tagService.getUncheckTagId(paperId);
-    }
 }

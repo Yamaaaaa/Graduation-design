@@ -1,7 +1,5 @@
 package com.example.tag_service.Controller;
 
-import com.example.tag_service.Dao.TagDao;
-import com.example.tag_service.Entity.SameTagEntity;
 import com.example.tag_service.Entity.TagEntity;
 import com.example.tag_service.Servcie.TagService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,6 +7,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 @RestController
 public class TagController {
@@ -16,7 +15,7 @@ public class TagController {
     TagService tagService;
 
     @PostMapping("/tagName")
-    Map<Integer, String> tagName(@RequestBody List<Integer> tagIDList){
+    List<String> tagName(@RequestBody List<Integer> tagIDList){
         return tagService.getTagList(tagIDList);
     }
 
@@ -48,5 +47,27 @@ public class TagController {
     @GetMapping("/SameTagData")
     List<String> getSameTagData(@RequestParam int tagId){
         return tagService.getSameTagData(tagId);
+    }
+
+    @GetMapping("/getUncheckList")
+    List<Integer> getUncheckList(){
+        return tagService.getUncheckList();
+    }
+
+    @GetMapping("/getUncheckTag")
+    List<Integer> getUncheckTag(@RequestParam int paperId){
+        return tagService.getUncheckTagId(paperId);
+    }
+
+    @PostMapping("/checkTagPaper")
+    void checkTagPaper(@RequestBody Map<Integer, Set<String>> paperTagData){
+        for(Map.Entry<Integer, Set<String>> entry: paperTagData.entrySet()) {
+            tagService.checkTagPaper(entry.getKey(), entry.getValue());
+        }
+    }
+
+    @GetMapping("/searchTag")
+    List<TagEntity> getUncheckTag(@RequestParam String searchText){
+        return tagService.searchTag(searchText);
     }
 }

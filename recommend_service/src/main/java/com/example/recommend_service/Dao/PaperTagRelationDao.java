@@ -14,14 +14,21 @@ public interface PaperTagRelationDao extends JpaRepository<PaperTagRelationEntit
     List<PaperTagRelationEntity> findTop6ByPaperIdOrderByDegreeDesc(int paperId);
     void deleteByTagId(int tag_id);
     List<PaperTagRelationEntity> findByTagId(int tag_id);
-    List<PaperTagRelationEntity> findByPaperId(int paper_id);
     PaperTagRelationEntity findByPaperIdAndTagId(int paper_id, int tag_id);
     boolean existsByPaperIdAndTagId(int paper_id, int tag_id);
+
     @Query(value = "select distinct tag_id from paper_tag_relation ", nativeQuery = true)
     List<Integer> findAllTagId();
+
     @Query(value = "select distinct paper_id from paper_tag_relation ", nativeQuery = true)
     List<Integer> findAllPaperId();
-    @Query(value = "select paper_id from paper_tag_relation where tagId=?1 and degree>?2 order by degree desc", nativeQuery = true)
+
+    @Query(value = "select paper_id from paper_tag_relation where tag_id=?1 and degree>?2 order by degree desc", nativeQuery = true)
     List<Integer> getPaperIdByTagIdAndDegree(int tagId, float degree, Pageable pageable);
+
+    @Query(value = "select tag_id from paper_tag_relation where paper_id=?1 and degree>?2", nativeQuery = true)
+    List<Integer> findTagIdByPaperIdAndDegreeGreaterThanEqual(int paperId, double degree);
+
     List<PaperTagRelationEntity> findByPaperIdAndDegreeGreaterThanEqual(int paperId, double degree);
+    List<PaperTagRelationEntity> findAllByRenew(boolean renew);
 }

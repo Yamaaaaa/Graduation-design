@@ -25,8 +25,6 @@ public class TagService {
     @Autowired
     PaperFeatureDao paperFeatureDao;
     @Autowired
-    TagPaperDao tagPaperDao;
-    @Autowired
     SysInfoDao sysInfoDao;
     @Autowired
     RestTemplate restTemplate;
@@ -91,13 +89,5 @@ public class TagService {
     public List<Integer> getTagRelatePaper(int tagId, int pageNum, int pageSize){
         float paper_tag_th = sysInfoDao.findByName("paper_tag_th").getVal()/10;
         return paperTagRelationDao.getPaperIdByTagIdAndDegree(tagId, paper_tag_th, PageRequest.of(pageNum, pageSize));
-    }
-
-    public List<Integer> getUncheckList(){
-        return tagPaperDao.getAllPaperId();
-    }
-
-    public List<Integer> getUncheckTagId(int paperId){
-        return tagPaperDao.findAllByPaperId(paperId);
     }
 }

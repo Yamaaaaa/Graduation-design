@@ -72,4 +72,8 @@ public class TagEntity {
         this.usedNum = usedNum;
         this.lastActiveTime = lastActiveTime;
     }
+
+    public static TagEntity getNoneTagEntity(){
+        return new TagEntity("不存在该标签", 0, new Date());
+    }
 }

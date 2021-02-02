@@ -74,4 +74,14 @@ public class PaperEntity {
     public int hashCode() {
         return Objects.hash(id, title, abst, browseNum, recentBrowseNum);
     }
+
+    public PaperEntity() {
+    }
+
+    public PaperEntity(String title, String abst, Integer browseNum, Integer recentBrowseNum) {
+        this.title = title;
+        this.abst = abst;
+        this.browseNum = browseNum;
+        this.recentBrowseNum = recentBrowseNum;
+    }
 }

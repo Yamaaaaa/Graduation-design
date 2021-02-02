@@ -17,5 +17,11 @@ public interface TagDao extends JpaRepository<TagEntity, Integer> {
     boolean existsByName(String name);
     List<Integer> deleteByLastActiveTimeBeforeAndUsedNumLessThan(Date date, int num);
     List<TagEntity> findByLastActiveTimeBeforeAndUsedNumLessThan(Date date, int num);
+
     Page<TagEntity> findAll(Pageable pageable);
+
+    @Query(nativeQuery = true, value = "select name from tag where id in ?1")
+    List<String> getNameByIdList(List<Integer> tagIdList);
+
+    List<TagEntity> findAllByNameContains(String name);
 }
