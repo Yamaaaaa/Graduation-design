@@ -10,9 +10,8 @@ import java.util.List;
 public interface SameTagDao extends JpaRepository<SameTagEntity, SameTagEntityPK> {
     SameTagEntity findByName(String name);
     boolean existsByName(String name);
-    @Query(value = "select name from same_tag where id=?1", nativeQuery = true)
-    List<String> getSameTagNameByTagId(int tagId);
+    @Query(value = "select name from same_tag where same_tag_name=?1", nativeQuery = true)
+    List<String> findNameBySameTagName(String tagId);
 
-    @Query(value = "select distinct same_tag_id from same_tag where name contains ?1", nativeQuery = true)
-    List<Integer> findAllByNameContains(String name);
+    List<String> findDistinctByNameContains(String name);
 }

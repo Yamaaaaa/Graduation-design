@@ -9,7 +9,7 @@ import java.util.Objects;
 public class PaperFeatureEntity {
     private int paperId;
     private int topicId;
-    private Double degree;
+    private Float degree;
 
     @Id
     @Column(name = "paper_id")
@@ -33,11 +33,11 @@ public class PaperFeatureEntity {
 
     @Basic
     @Column(name = "degree")
-    public Double getDegree() {
+    public Float getDegree() {
         return degree;
     }
 
-    public void setDegree(Double degree) {
+    public void setDegree(Float degree) {
         this.degree = degree;
     }
 
@@ -57,7 +57,7 @@ public class PaperFeatureEntity {
     public PaperFeatureEntity() {
     }
 
-    public PaperFeatureEntity(int paperId, int topicId, Double degree) {
+    public PaperFeatureEntity(int paperId, int topicId, Float degree) {
         this.paperId = paperId;
         this.topicId = topicId;
         this.degree = degree;

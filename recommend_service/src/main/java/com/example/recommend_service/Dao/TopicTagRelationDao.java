@@ -7,8 +7,9 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.List;
 
 public interface TopicTagRelationDao extends JpaRepository<TopicTagRelationEntity, TopicTagRelationEntityPK> {
-    void deleteByTagId(int tag_id);
+    void deleteByTagName(String tagName);
     List<TopicTagRelationEntity> findAll();
     List<TopicTagRelationEntity> findByTopicId(int topicId);
-    boolean existsByTopicIdAndTagIdAndDegreeGreaterThanEqual(int topicId, int tagId, double degree);
+    boolean existsByTopicIdAndTagNameAndDegreeGreaterThanEqual(int topicId, String tagName, double degree);
+    TopicTagRelationEntity findTopByTagNameOrderByDegreeDesc(String tagName);
 }

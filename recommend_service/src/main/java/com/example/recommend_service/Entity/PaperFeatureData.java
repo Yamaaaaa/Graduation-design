@@ -5,8 +5,8 @@ import java.util.Map;
 public class PaperFeatureData {
     int topicId;
     String topicName;
-    Double topicDegree;
-    Map<Integer, Double> topicTag;
+    Float topicDegree;
+    Map<String, Float> topicTag;
 
     public int getTopicId() {
         return topicId;
@@ -24,23 +24,23 @@ public class PaperFeatureData {
         this.topicName = topicName;
     }
 
-    public Double getTopicDegree() {
+    public Float getTopicDegree() {
         return topicDegree;
     }
 
-    public void setTopicDegree(Double topicDegree) {
+    public void setTopicDegree(Float topicDegree) {
         this.topicDegree = topicDegree;
     }
 
-    public Map<Integer, Double> getTopicTag() {
+    public Map<String, Float> getTopicTag() {
         return topicTag;
     }
 
-    public void setTopicTag(Map<Integer, Double> topicTag) {
+    public void setTopicTag(Map<String, Float> topicTag) {
         this.topicTag = topicTag;
     }
 
-    public PaperFeatureData(int topicId, String topicName, Double topicDegree, Map<Integer, Double> topicTag) {
+    public PaperFeatureData(int topicId, String topicName, Float topicDegree, Map<String, Float> topicTag) {
         this.topicId = topicId;
         this.topicName = topicName;
         this.topicDegree = topicDegree;

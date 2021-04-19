@@ -8,8 +8,8 @@ import java.util.Objects;
 @IdClass(TopicTagRelationEntityPK.class)
 public class TopicTagRelationEntity {
     private int topicId;
-    private int tagId;
-    private Double degree;
+    private String tagName;
+    private Float degree;
 
     @Id
     @Column(name = "topic_id")
@@ -22,22 +22,22 @@ public class TopicTagRelationEntity {
     }
 
     @Id
-    @Column(name = "tag_id")
-    public int getTagId() {
-        return tagId;
+    @Column(name = "tag_Name")
+    public String getTagName() {
+        return tagName;
     }
 
-    public void setTagId(int tagId) {
-        this.tagId = tagId;
+    public void setTagName(String tagName) {
+        this.tagName = tagName;
     }
 
     @Basic
     @Column(name = "degree")
-    public Double getDegree() {
+    public Float getDegree() {
         return degree;
     }
 
-    public void setDegree(Double degree) {
+    public void setDegree(Float degree) {
         this.degree = degree;
     }
 
@@ -46,20 +46,20 @@ public class TopicTagRelationEntity {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         TopicTagRelationEntity that = (TopicTagRelationEntity) o;
-        return topicId == that.topicId && tagId == that.tagId && Objects.equals(degree, that.degree);
+        return topicId == that.topicId && tagName == that.tagName && Objects.equals(degree, that.degree);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(topicId, tagId, degree);
+        return Objects.hash(topicId, tagName, degree);
     }
 
     public TopicTagRelationEntity() {
     }
 
-    public TopicTagRelationEntity(int topicId, int tagId, Double degree) {
+    public TopicTagRelationEntity(int topicId, String tagName, Float degree) {
         this.topicId = topicId;
-        this.tagId = tagId;
+        this.tagName = tagName;
         this.degree = degree;
     }
 }

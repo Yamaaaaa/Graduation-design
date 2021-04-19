@@ -8,8 +8,8 @@ import java.util.Objects;
 @IdClass(PaperTagRelationEntityPK.class)
 public class PaperTagRelationEntity {
     private int paperId;
-    private int tagId;
-    private Double degree;
+    private String tagName;
+    private Float degree;
     private int tagNum;
     private boolean renew;
 
@@ -24,22 +24,22 @@ public class PaperTagRelationEntity {
     }
 
     @Id
-    @Column(name = "tag_id")
-    public int getTagId() {
-        return tagId;
+    @Column(name = "tag_name")
+    public String getTagName() {
+        return tagName;
     }
 
-    public void setTagId(int tagId) {
-        this.tagId = tagId;
+    public void setTagName(String tagName) {
+        this.tagName = tagName;
     }
 
     @Basic
     @Column(name = "degree")
-    public Double getDegree() {
+    public Float getDegree() {
         return degree;
     }
 
-    public void setDegree(Double degree) {
+    public void setDegree(Float degree) {
         this.degree = degree;
     }
 
@@ -66,24 +66,24 @@ public class PaperTagRelationEntity {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         PaperTagRelationEntity that = (PaperTagRelationEntity) o;
-        return paperId == that.paperId && tagId == that.tagId && Objects.equals(degree, that.degree);
+        return paperId == that.paperId && tagName == that.tagName && Objects.equals(degree, that.degree);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(paperId, tagId, degree);
+        return Objects.hash(paperId, tagName, degree);
     }
 
-    public PaperTagRelationEntity(int paperId, int tagId) {
+    public PaperTagRelationEntity(int paperId, String tagName) {
         this.paperId = paperId;
-        this.tagId = tagId;
+        this.tagName = tagName;
         this.tagNum = 1;
         this.renew = false;
     }
 
-    public PaperTagRelationEntity(int paperId, int tagId, Double degree, int tagNum) {
+    public PaperTagRelationEntity(int paperId, String tagName, Float degree, int tagNum) {
         this.paperId = paperId;
-        this.tagId = tagId;
+        this.tagName = tagName;
         this.degree = degree;
         this.tagNum = tagNum;
         this.renew = true;

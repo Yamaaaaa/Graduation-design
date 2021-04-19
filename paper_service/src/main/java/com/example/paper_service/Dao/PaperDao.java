@@ -17,4 +17,6 @@ public interface PaperDao extends JpaRepository<PaperEntity, Integer>{
     Page<PaperEntity> findAll(Pageable pageable);
     @Query(nativeQuery = true, value="select id from paper")
     List<Integer> findAllId();
+
+    List<PaperEntity> findAllByTitleContainsOrAbstContains(String searchText1, String searchText2);
 }

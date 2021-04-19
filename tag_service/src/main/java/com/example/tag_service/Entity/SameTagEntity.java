@@ -8,7 +8,7 @@ import java.util.Objects;
 @IdClass(SameTagEntityPK.class)
 public class SameTagEntity {
     private String name;
-    private int sameTagId;
+    private String sameTagName;
 
     @Id
     @Column(name = "name")
@@ -21,13 +21,13 @@ public class SameTagEntity {
     }
 
     @Id
-    @Column(name = "same_tag_id")
-    public int getSameTagId() {
-        return sameTagId;
+    @Column(name = "same_tag_name")
+    public String getSameTagName() {
+        return sameTagName;
     }
 
-    public void setSameTagId(int sameTagId) {
-        this.sameTagId = sameTagId;
+    public void setSameTagName(String sameTagId) {
+        this.sameTagName = sameTagId;
     }
 
     @Override
@@ -37,23 +37,17 @@ public class SameTagEntity {
 
         SameTagEntity that = (SameTagEntity) o;
 
-        if (sameTagId != that.sameTagId) return false;
+        if (sameTagName != that.sameTagName) return false;
         if (!Objects.equals(name, that.name)) return false;
         return true;
     }
 
-    @Override
-    public int hashCode() {
-        int result = name != null ? name.hashCode() : 0;
-        result = 31 * result + sameTagId;
-        return result;
-    }
 
     public SameTagEntity() {
     }
 
-    public SameTagEntity(String name, int sameTagId) {
+    public SameTagEntity(String name, String sameTagName) {
         this.name = name;
-        this.sameTagId = sameTagId;
+        this.sameTagName = sameTagName;
     }
 }

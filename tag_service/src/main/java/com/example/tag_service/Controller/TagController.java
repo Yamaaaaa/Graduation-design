@@ -10,55 +10,47 @@ import java.util.Map;
 import java.util.Set;
 
 @RestController
+@CrossOrigin
 public class TagController {
     @Autowired
     TagService tagService;
 
-    @PostMapping("/tagName")
-    List<String> tagName(@RequestBody List<Integer> tagIDList){
-        return tagService.getTagList(tagIDList);
+    //合并标签
+    @PostMapping("/mergeTag")
+    void mergeTag(@RequestBody Map<String, Object> data){
+        tagService.mergeTag((String)data.get("goalTag"), (List<String>)data.get("operateTag"));
     }
 
-    @PostMapping("/addPaperTag")
-    void addTag(@RequestBody List<String> tagList, @RequestBody Integer paperId){
-        tagService.addTag(paperId, tagList);
-    }
-
-    @GetMapping("/tag/mergeTag")
-    void mergeTag(@RequestParam int goalTag, @RequestParam int operateTag){
-        tagService.mergeTag(goalTag, operateTag);
-    }
-
-    @PostMapping("/tag/deleteTag")
-    void deleteTag(@RequestBody List<Integer> tagList){
+    @PostMapping("/deleteTag")
+    void deleteTag(@RequestBody List<String> tagList){
         tagService.deleteTag(tagList);
     }
 
+    //获取所有标签信息
     @GetMapping("/tagPage")
-    List<TagEntity> tagPage(@RequestParam int pageNum, @RequestParam int pageSize){
-        return tagService.pageTag(pageNum, pageNum);
+    List<TagEntity> tagPage(){
+        return tagService.pageTag();
     }
 
+    //获取标签详细信息
     @GetMapping("/tagInfo")
-    TagEntity getTagData(@RequestParam int tagId){
+    TagEntity getTagData(@RequestParam String tagId){
         return tagService.getTagInfo(tagId);
     }
 
+    //获取同义词
     @GetMapping("/SameTagData")
-    List<String> getSameTagData(@RequestParam int tagId){
+    List<String> getSameTagData(@RequestParam String tagId){
         return tagService.getSameTagData(tagId);
     }
 
-    @GetMapping("/getUncheckList")
-    List<Integer> getUncheckList(){
-        return tagService.getUncheckList();
-    }
-
+    //为论文添加tag
     @GetMapping("/getUncheckTag")
-    List<Integer> getUncheckTag(@RequestParam int paperId){
-        return tagService.getUncheckTagId(paperId);
+    List<String> getUncheckTag(@RequestParam int paperId){
+        return tagService.getUncheckTag(paperId);
     }
 
+    //审核论文Tag
     @PostMapping("/checkTagPaper")
     void checkTagPaper(@RequestBody Map<Integer, Set<String>> paperTagData){
         for(Map.Entry<Integer, Set<String>> entry: paperTagData.entrySet()) {
@@ -66,8 +58,26 @@ public class TagController {
         }
     }
 
+    //为论文添加tag
+    @PostMapping("/addPaperTag")
+    void addPaperTag(@RequestBody Map<Integer, Set<String>> paperTagData){
+        tagService.addUncheckTag(paperTagData);
+    }
+
+    //搜索Tag
     @GetMapping("/searchTag")
-    List<TagEntity> getUncheckTag(@RequestParam String searchText){
+    List<TagEntity> searchTag(@RequestParam String searchText){
         return tagService.searchTag(searchText);
     }
+
+    @GetMapping("/initTag")
+    void initTag(){
+        tagService.initTag();
+    }
+
+    @GetMapping("/getAllTag")
+    List<String> getAllTag(){
+        return tagService.getAllTag();
+    }
+
 }

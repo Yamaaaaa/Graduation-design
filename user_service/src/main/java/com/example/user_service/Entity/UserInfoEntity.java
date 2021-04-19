@@ -10,6 +10,7 @@ public class UserInfoEntity {
     private String name;
     private String password;
     private String role;
+    private int subNum;
 
 
     public UserInfoEntity(String name, String password, String role){
@@ -61,6 +62,16 @@ public class UserInfoEntity {
 
     public void setRole(String role) {
         this.role = role;
+    }
+
+    @Basic
+    @Column(name = "sub_num")
+    public int getSubNum() {
+        return subNum;
+    }
+
+    public void setSubNum(int subNum) {
+        this.subNum = subNum;
     }
 
     @Override

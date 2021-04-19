@@ -17,19 +17,18 @@ CREATE TABLE PAPER_INFO(
 
 CREATE TABLE PAPER_TAG_RELATION(
     paper_id int,
-    tag_id int,
+    tag_name varchar(20),
     degree float,
-    primary key (paper_id, tag_id),
-    foreign key (paper_id) REFERENCES PAPER_INFO(id)
+    tag_num int,
+    renew boolean,
+    primary key (paper_id, tag_name)
 );
 
 CREATE TABLE PAPER_FEATURE(
     paper_id int,
     topic_id int,
     degree float,
-    primary key (paper_id, topic_id),
-    foreign key (paper_id) REFERENCES PAPER_INFO(id),
-    foreign key (topic_id) REFERENCES TOPIC_TAG_RELATION(topic_id)
+    primary key (paper_id, topic_id)
 );
 
 CREATE TABLE USER_HISTORY(
@@ -37,8 +36,7 @@ CREATE TABLE USER_HISTORY(
     paper_id int,
     browse_time date,
     uncheck boolean,
-    primary key (user_id, paper_id),
-    foreign key (paper_id) REFERENCES PAPER_INFO(id),
+    primary key (user_id, paper_id)
 );
 
 CREATE TABLE USER_FEATURE(
@@ -46,15 +44,14 @@ CREATE TABLE USER_FEATURE(
     topic_id int,
     degree float,
     last_date date,
-    primary key (user_id, topic_id),
-    foreign key (topic_id) REFERENCES TOPIC_TAG_RELATION(topic_id)
+    primary key (user_id, topic_id)
 );
 
 CREATE TABLE TOPIC_TAG_RELATION(
     topic_id int,
-    tag_id int,
+    tag_name varchar(20),
     degree float,
-    primary key (topic_id, tag_id)
+    primary key (topic_id, tag_name)
 );
 
 CREATE TABLE TOPIC(
@@ -70,6 +67,40 @@ CREATE TABLE USER_FEATURE_INFO(
     last_renew_date date,
     primary key (user_id)
 );
+
+CREATE TABLE USER_DISLIKE_PAPER(
+    user_id int,
+    paper_id int,
+    primary key (user_id, paper_id)
+);
+
+CREATE TABLE USER_DISLIKE_TAG(
+    user_id int,
+    tag_name varchar(20),
+    primary key (user_id, tag_name)
+);
+
+CREATE TABLE USER_PAPER_SIMILARITY(
+    user_id int,
+    paper_id int,
+    relateValue float,
+    primary key (user_id, paper_id)
+);
+
+CREATE TABLE USER_PAPER_SIMILARITY(
+    user_id int,
+    paper_id int,
+    relateValue float,
+    primary key (user_id, paper_id)
+);
+
+CREATE TABLE USER_SIMILARITY(
+    user_id int,
+    other_user int,
+    relateValue float,
+    primary key (user_id, other_user)
+);
+
 INSERT INTO SYS_INFO values("user_history_tw", 1);
 INSERT INTO SYS_INFO values("paper_tag_num", 5);
 INSERT INTO SYS_INFO values("paper_topic_th", 1);

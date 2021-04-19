@@ -5,13 +5,8 @@ import com.example.paper_service.Dao.PaperHotDao;
 import com.example.paper_service.Dao.PaperSimpleDao;
 import com.example.paper_service.Dao.SysInfoDao;
 import com.example.paper_service.Entity.*;
-import com.example.paper_service.Util.LuceneUtils;
-
-import org.apache.lucene.document.Document;
-import org.apache.lucene.index.IndexWriter;
-import org.apache.lucene.index.Term;
-import org.apache.lucene.queryparser.classic.MultiFieldQueryParser;
-import org.apache.lucene.search.*;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Component;
@@ -22,6 +17,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.lang.reflect.Type;
 import java.util.*;
 
 @Component
@@ -37,10 +33,18 @@ public class PaperService {
     @Autowired
     private RestTemplate restTemplate;
 
-    String getPaperRecommendData = "getPaperRecommendData";
+    String recommendServiceUrl = "http://localhost:50002/";
+    String tagServiceUrl = "http://localhost:50003/";
+    String getUserHistoryData = "getUserHistory";
+    String getPaperRecommendData = "getRecommendPaperIdList";
     String checkTagPaper = "checkTagPaper";
+    String getSquarePaperList = "getSquarePaperIdList";
+    String addPaperTag = "addPaperTag";
+    String getPaperTagData = "getPaperTagData";
+
 
     public List<PaperSimpleEntity> getPaperSimpleDataList(List<Integer> paperIDList) {
+
         return paperSimpleDao.findByIdList(paperIDList);
     }
 
@@ -49,8 +53,26 @@ public class PaperService {
         return paperEntity.getAbst();
     }
 
-    public List<PaperSimpleEntity> getHotPaperList() {
-        return paperSimpleDao.findTop20ByOrderByRecentBrowseNumDesc();
+    public List<PaperSimpleData> getHotPaperList() {
+        List<Integer> paperIdList = new ArrayList<>();
+        List<PaperEntity> paperEntityList = paperDao.findTop20ByOrderByRecentBrowseNumDesc();
+        for(PaperEntity paperEntity: paperEntityList){
+            paperIdList.add(paperEntity.getId());
+        }
+        //Type type = new TypeToken<Map<Integer, Set<String>>>(){}.getType();
+        Gson gson = new Gson();
+        String url = recommendServiceUrl + getPaperTagData;
+        Map<String, List<String>> paperTagData = new HashMap<>();
+        paperTagData = gson.fromJson(restTemplate.postForObject(url, paperIdList, String.class), paperTagData.getClass());
+
+        List<PaperSimpleData> hotPaperList = new ArrayList<>();
+        for(PaperEntity paperEntity: paperEntityList){
+            PaperSimpleData paperSimpleData = new PaperSimpleData();
+            paperSimpleData.setPaperEntity(paperEntity);
+            paperSimpleData.setTags(paperTagData.get("" + paperEntity.getId()));
+            hotPaperList.add(paperSimpleData);
+        }
+        return hotPaperList;
     }
 
 //    public List<PaperSimpleEntity> getPaperItemData(List<Integer> paperIdList) {
@@ -95,8 +117,16 @@ public class PaperService {
         PaperEntity paperEntity = paperDao.findById(paperID);
         paperEntity.setBrowseNum(paperEntity.getRecentBrowseNum() + 1);
         paperDao.save(paperEntity);
+        int serNum = sysInfoDao.findByName("current_ser_num").getVal();
 
-        PaperHotEntity paperHotEntity = paperHotDao.findByPaperIdAndSerNum(paperID, sysInfoDao.findByName("current_ser_num").getVal());
+        PaperHotEntity paperHotEntity = paperHotDao.findByPaperIdAndSerNum(paperID, serNum);
+        if(paperHotEntity == null){
+            PaperHotEntity temp = new PaperHotEntity();
+            temp.setBrowseNum(0);
+            temp.setPaperId(paperID);
+            temp.setSerNum(serNum);
+            paperHotEntity = paperHotDao.save(temp);
+        }
         paperHotEntity.setBrowseNum(paperHotEntity.getBrowseNum() + 1);
         paperHotDao.save(paperHotEntity);
     }
@@ -127,7 +157,6 @@ public class PaperService {
             PaperEntity paperEntity = paperDao.save(new PaperEntity(paperImportData1.getTitle(), paperImportData1.getAbst(), 0, 0));
             paperTagData.put(paperEntity.getId(), paperImportData1.getTags());
             paperImportData1.setId(paperEntity.getId());
-            createPaperIndexDB(paperImportData1);
         }
         restTemplate.postForObject(checkTagPaper, paperTagData, void.class);
     }
@@ -140,7 +169,7 @@ public class PaperService {
 
     public void initData() {
         Map<Integer, Set<String>> paperTagData = new HashMap<>();
-
+        int id = 1;
         for (String txtName : txtNames) {
             File file = new File("paperinfos\\" + txtName);
             String[] tags = txtName.split("\\+|\\.");
@@ -175,12 +204,8 @@ public class PaperService {
                         PaperEntity aPaper = new PaperEntity(infos[0], infos[2], 0, 0);
                         System.out.println("Now insert the paper and relation: " + infos[0]);
                         System.out.println("relation data " + paperTag);
-                        PaperEntity paperEntity = paperDao.save(aPaper);
-                        PaperImportData paperImportData = new PaperImportData(paperEntity.getTitle(), paperEntity.getAbst(), paperTag);
-                        paperImportData.setId(paperEntity.getId());
-                        createPaperIndexDB(paperImportData);
-                        paperTagData.put(paperEntity.getId(), paperTag);
-                        restTemplate.postForObject(checkTagPaper, paperTagData, void.class);
+                        paperDao.save(aPaper);
+                        paperTagData.put(id++, paperTag);
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -188,64 +213,129 @@ public class PaperService {
             } catch (FileNotFoundException e) {
                 e.printStackTrace();
             }
+
         }
+
+        System.out.println("paperTagData" + paperTagData);
+        restTemplate.postForObject(tagServiceUrl + addPaperTag, paperTagData, void.class);
     }
 
-    public void createPaperIndexDB(PaperImportData paperImportdata) throws Exception {
-        //把数据填充到JavaBean对象中
-        Document document = LuceneUtils.javaBean2Document(paperImportdata);
-        /**
-         * IndexWriter将我们的document对象写到硬盘中
-         *
-         * 参数一：Directory d,写到硬盘中的目录路径是什么
-         * 参数二：Analyzer a, 以何种算法来对document中的原始记录表数据进行拆分成词汇表
-         * 参数三：MaxFieldLength mfl 最多将文本拆分出多少个词汇
-         *
-         * */
-        IndexWriter indexWriter = new IndexWriter(LuceneUtils.getDirectory(), LuceneUtils.getIwc());
-        //将Document对象通过IndexWriter对象写入索引库中
-        indexWriter.addDocument(document);
-        //关闭IndexWriter对象
-        indexWriter.close();
+//    public void createPaperIndexDB(PaperImportData paperImportdata) throws Exception {
+//        //把数据填充到JavaBean对象中
+//        Document document = LuceneUtils.javaBean2Document(paperImportdata);
+//        /**
+//         * IndexWriter将我们的document对象写到硬盘中
+//         *
+//         * 参数一：Directory d,写到硬盘中的目录路径是什么
+//         * 参数二：Analyzer a, 以何种算法来对document中的原始记录表数据进行拆分成词汇表
+//         * 参数三：MaxFieldLength mfl 最多将文本拆分出多少个词汇
+//         *
+//         * */
+//        IndexWriter indexWriter = new IndexWriter(LuceneUtils.getDirectory(), LuceneUtils.getIwc());
+//        //将Document对象通过IndexWriter对象写入索引库中
+//        indexWriter.addDocument(document);
+//        //关闭IndexWriter对象
+//        indexWriter.close();
+//    }
+
+//    //更新某篇论文的索引（标签索引与主题索引）
+//    public void updatePaperIndex(List<Map<String, String>> papersData) throws IOException {
+//        String IdKeyWord = "id";
+//        DirectoryReader reader = DirectoryReader.open(LuceneUtils.getDirectory());
+//        //创建IndexSearcher对象
+//        IndexSearcher indexSearcher = new IndexSearcher(reader);
+//        for(Map<String, String> paperData: papersData) {
+//            String paperId = paperData.get(IdKeyWord);
+//            Query query = new TermQuery(new Term("id", paperId));
+//            TopDocs topDocs = indexSearcher.search(query, 1);
+//            assert topDocs.totalHits == 1;
+//            Document doc = indexSearcher.doc(topDocs.scoreDocs[0].doc);
+//            IndexWriter indexWriter = new IndexWriter(LuceneUtils.getDirectory(), LuceneUtils.getIwc());
+//            for (Map.Entry<String, String> entry : paperData.entrySet()) {
+//                indexWriter.updateDocument(new Term(entry.getKey(), entry.getValue()), doc);
+//            }
+//        }
+//    }
+//
+//    public List<Integer> searchPaper(String searchText) throws Exception {
+//        DirectoryReader reader = DirectoryReader.open(LuceneUtils.getDirectory());
+//        //创建IndexSearcher对象
+//        IndexSearcher indexSearcher = new IndexSearcher(reader);
+//        //创建QueryParser对象
+//        String[] fields = {"title", "abst", "tags", "topics"};
+//        Query query = new MultiFieldQueryParser(fields, LuceneUtils.getAnalyzer()).parse(searchText);
+//        TopDocs topDocs = indexSearcher.search(query, 20);
+//        //获取符合条件的编号
+//        List<Integer> paperIdList = new ArrayList<>();
+//        for (int i = 0; i < topDocs.scoreDocs.length; i++) {
+//            ScoreDoc scoreDoc = topDocs.scoreDocs[i];
+//            int no = scoreDoc.doc;
+//            //用indexSearcher对象去索引库中查询编号对应的Document对象
+//            Document document = indexSearcher.doc(no);
+//
+//            paperIdList.add(Integer.parseInt(document.get("id")));
+//        }
+//        return paperIdList;
+//    }
+
+    public List<PaperSimpleData> getRecommendList(int userId, int pageNum){
+        String url = recommendServiceUrl + getPaperRecommendData + "?userId=" + userId+"&pageNum="+pageNum;
+        Map<String, List<String>> paperIdList = new HashMap<>();
+        System.out.println("getRecommendPaperUrl:" + url);
+        paperIdList = restTemplate.getForObject(url, paperIdList.getClass());
+        System.out.println("paperIdList:" + paperIdList);
+        return getPaperSimpleData(paperIdList);
     }
 
-    //更新某篇论文的索引（标签索引与主题索引）
-    public void updatePaperIndex(List<Map<String, String>> papersData) throws IOException {
-        String IdKeyWord = "id";
-        DirectoryReader reader = DirectoryReader.open(LuceneUtils.getDirectory());
-        //创建IndexSearcher对象
-        IndexSearcher indexSearcher = new IndexSearcher(reader);
-        for(Map<String, String> paperData: papersData) {
-            String paperId = paperData.get(IdKeyWord);
-            Query query = new TermQuery(new Term("id", paperId));
-            TopDocs topDocs = indexSearcher.search(query, 1);
-            assert topDocs.totalHits == 1;
-            Document doc = indexSearcher.doc(topDocs.scoreDocs[0].doc);
-            IndexWriter indexWriter = new IndexWriter(LuceneUtils.getDirectory(), LuceneUtils.getIwc());
-            for (Map.Entry<String, String> entry : paperData.entrySet()) {
-                indexWriter.updateDocument(new Term(entry.getKey(), entry.getValue()), doc);
-            }
+    private List<PaperSimpleData> getPaperSimpleData(Map<String, List<String>> paperIdList) {
+        List<PaperSimpleData> paperSimpleDataList = new ArrayList<>();
+        for(Map.Entry<String, List<String>> entry: paperIdList.entrySet()){
+            PaperSimpleData paperSimpleData = new PaperSimpleData();
+            System.out.println("paperId:" + entry.getKey());
+            PaperEntity paperEntity = paperDao.findById(Integer.parseInt(entry.getKey()));
+            paperSimpleData.setPaperEntity(paperEntity);
+            paperSimpleData.setTags(entry.getValue());
+            paperSimpleDataList.add(paperSimpleData);
         }
+        return paperSimpleDataList;
     }
 
-    public List<Integer> searchPaper(String searchText) throws Exception {
-        DirectoryReader reader = DirectoryReader.open(LuceneUtils.getDirectory());
-        //创建IndexSearcher对象
-        IndexSearcher indexSearcher = new IndexSearcher(reader);
-        //创建QueryParser对象
-        String[] fields = {"title", "abst", "tags", "topics"};
-        Query query = new MultiFieldQueryParser(fields, LuceneUtils.getAnalyzer()).parse(searchText);
-        TopDocs topDocs = indexSearcher.search(query, 20);
-        //获取符合条件的编号
-        List<Integer> paperIdList = new ArrayList<>();
-        for (int i = 0; i < topDocs.scoreDocs.length; i++) {
-            ScoreDoc scoreDoc = topDocs.scoreDocs[i];
-            int no = scoreDoc.doc;
-            //用indexSearcher对象去索引库中查询编号对应的Document对象
-            Document document = indexSearcher.doc(no);
+    public List<SquarePaperData> getSquarePaperList(int userId, int pageNum){
+        Map<String, Object> map = new HashMap<>();
+        map.put("userId", userId);
+        String url = recommendServiceUrl + getSquarePaperList +"?userId=" + userId +"&pageNum="+pageNum;
+        System.out.println("getSquarePaperUrl:" + url);
+        Map<Integer, SquarePaperRecommendData> paperIdList;
+        Gson gson = new Gson();
+        Type type = new TypeToken<Map<Integer, SquarePaperRecommendData>>(){}.getType();
+        String respond = restTemplate.getForObject(url, String.class);
+        paperIdList = gson.fromJson(respond, type);
 
-            paperIdList.add(Integer.parseInt(document.get("id")));
+        List<SquarePaperData> squarePaperList = new ArrayList<>();
+        for(Map.Entry<Integer, SquarePaperRecommendData> entry: paperIdList.entrySet()){
+            PaperEntity paperEntity = paperDao.findById((int)entry.getKey());
+            SquarePaperData squarePaperData = new SquarePaperData();
+            squarePaperData.setPaperEntity(paperEntity);
+            squarePaperData.setSquarePaperRecommendData(entry.getValue());
+            squarePaperList.add(squarePaperData);
         }
-        return paperIdList;
+        return squarePaperList;
     }
+
+    public List<Integer> searchPaper(String searchText){
+        List<Integer> paperId = new ArrayList<>();
+        for(PaperEntity paperEntity: paperDao.findAllByTitleContainsOrAbstContains(searchText, searchText)){
+            paperId.add(paperEntity.getId());
+        }
+        return paperId;
+    }
+
+    public List<PaperSimpleData> getUserHistoryData(int userId){
+        List<PaperSimpleData> paperSimpleDataList = new ArrayList<>();
+        Map<String, List<String>> paperTagData = new HashMap<>();
+        paperTagData = restTemplate.getForObject(recommendServiceUrl + getUserHistoryData + "?userId="+userId, paperTagData.getClass());
+        return getPaperSimpleData(paperTagData);
+    }
+
+
 }

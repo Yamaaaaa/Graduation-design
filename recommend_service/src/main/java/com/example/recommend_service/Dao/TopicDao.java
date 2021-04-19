@@ -9,4 +9,5 @@ public interface TopicDao extends JpaRepository<TopicEntity, Integer> {
     TopicEntity findById(int topicId);
     void deleteAll();
     List<TopicEntity> findAll();
+    TopicEntity findByName(String name);
 }

@@ -5,11 +5,9 @@ USE PAPER;
 CREATE TABLE PAPER(
     id int auto_increment,
     title varchar(50),
-    abst varchar(800),
+    abst varchar(1500),
     browse_num int,
     recent_browse_num int,
-    update boolean,
-    current_serial int,
     primary key (id)
 );
 
@@ -17,8 +15,7 @@ CREATE TABLE PAPER_HOT(
     paper_id int,
     ser_num int,
     browse_num int,
-    primary key (paper_id, ser_num),
-    foreign key (paper_id) REFERENCES paper(id)
+    primary key (paper_id, ser_num)
 );
 
 CREATE TABLE SYS_INFO(

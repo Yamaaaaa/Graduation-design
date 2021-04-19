@@ -7,7 +7,7 @@ import java.util.Objects;
 
 public class PaperTagRelationEntityPK implements Serializable {
     private int paperId;
-    private int tagId;
+    private String tagName;
 
     @Column(name = "paper_id")
     @Id
@@ -19,14 +19,14 @@ public class PaperTagRelationEntityPK implements Serializable {
         this.paperId = paperId;
     }
 
-    @Column(name = "tag_id")
+    @Column(name = "tag_Name")
     @Id
-    public int getTagId() {
-        return tagId;
+    public String getTagName() {
+        return tagName;
     }
 
-    public void setTagId(int tagId) {
-        this.tagId = tagId;
+    public void setTagName(String tagName) {
+        this.tagName = tagName;
     }
 
     @Override
@@ -34,11 +34,11 @@ public class PaperTagRelationEntityPK implements Serializable {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         PaperTagRelationEntityPK that = (PaperTagRelationEntityPK) o;
-        return paperId == that.paperId && tagId == that.tagId;
+        return paperId == that.paperId && tagName == that.tagName;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(paperId, tagId);
+        return Objects.hash(paperId, tagName);
     }
 }

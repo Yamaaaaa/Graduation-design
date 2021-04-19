@@ -6,7 +6,7 @@ import java.io.Serializable;
 
 public class TagPaperEntityPK implements Serializable {
     private int paperId;
-    private int tagId;
+    private String tagName;
 
     @Column(name = "paper_id")
     @Id
@@ -18,14 +18,14 @@ public class TagPaperEntityPK implements Serializable {
         this.paperId = paperId;
     }
 
-    @Column(name = "tag_id")
     @Id
-    public int getTagId() {
-        return tagId;
+    @Column(name = "tag_name")
+    public String getTagName() {
+        return tagName;
     }
 
-    public void setTagId(int tagId) {
-        this.tagId = tagId;
+    public void setTagName(String tagName) {
+        this.tagName = tagName;
     }
 
     @Override
@@ -36,15 +36,8 @@ public class TagPaperEntityPK implements Serializable {
         TagPaperEntityPK that = (TagPaperEntityPK) o;
 
         if (paperId != that.paperId) return false;
-        if (tagId != that.tagId) return false;
+        if (tagName != that.tagName) return false;
 
         return true;
-    }
-
-    @Override
-    public int hashCode() {
-        int result = paperId;
-        result = 31 * result + tagId;
-        return result;
     }
 }

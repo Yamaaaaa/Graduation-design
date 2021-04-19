@@ -16,13 +16,16 @@ public class PaperServiceApplication {
         ApplicationContext context = SpringApplication.run(PaperServiceApplication.class, args);
         PaperService paperService = context.getBean(PaperService.class);
 
+        if(false){
+            paperService.initData();
+        }
         ScheduledExecutorService updateHotPaperService = Executors.newSingleThreadScheduledExecutor();
         updateHotPaperService.scheduleAtFixedRate(new Runnable() {
             @Override
             public void run() {
                 paperService.updatePaperRecentBrowseNum();
             }
-        }, 0, 1, TimeUnit.DAYS);
+        }, 1, 1, TimeUnit.DAYS);
     }
 
 }

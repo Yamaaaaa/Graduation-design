@@ -7,7 +7,7 @@ import java.util.Objects;
 
 public class TopicTagRelationEntityPK implements Serializable {
     private int topicId;
-    private int tagId;
+    private String tagName;
 
     @Column(name = "topic_id")
     @Id
@@ -19,14 +19,14 @@ public class TopicTagRelationEntityPK implements Serializable {
         this.topicId = topicId;
     }
 
-    @Column(name = "tag_id")
+    @Column(name = "tag_Name")
     @Id
-    public int getTagId() {
-        return tagId;
+    public String getTagName() {
+        return tagName;
     }
 
-    public void setTagId(int tagId) {
-        this.tagId = tagId;
+    public void setTagName(String tagId) {
+        this.tagName = tagId;
     }
 
     @Override
@@ -34,11 +34,11 @@ public class TopicTagRelationEntityPK implements Serializable {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         TopicTagRelationEntityPK that = (TopicTagRelationEntityPK) o;
-        return topicId == that.topicId && tagId == that.tagId;
+        return topicId == that.topicId && tagName == that.tagName;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(topicId, tagId);
+        return Objects.hash(topicId, tagName);
     }
 }

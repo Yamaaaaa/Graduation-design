@@ -7,21 +7,11 @@ import java.util.Objects;
 @Entity
 @Table(name = "tag", schema = "tag")
 public class TagEntity {
-    private int id;
     private String name;
     private Integer usedNum;
     private Date lastActiveTime;
 
     @Id
-    @Column(name = "id")
-    public int getId() {
-        return id;
-    }
-
-    public void setId(int id) {
-        this.id = id;
-    }
-
     @Basic
     @Column(name = "name")
     public String getName() {
@@ -50,19 +40,6 @@ public class TagEntity {
 
     public void setLastActiveTime(Date lastActiveTime) {
         this.lastActiveTime = lastActiveTime;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        TagEntity tagEntity = (TagEntity) o;
-        return id == tagEntity.id && Objects.equals(name, tagEntity.name) && Objects.equals(usedNum, tagEntity.usedNum) && Objects.equals(lastActiveTime, tagEntity.lastActiveTime);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(id, name, usedNum, lastActiveTime);
     }
 
     public TagEntity(){ }

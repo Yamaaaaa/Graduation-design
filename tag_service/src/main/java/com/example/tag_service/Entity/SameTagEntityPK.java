@@ -6,7 +6,7 @@ import java.io.Serializable;
 
 public class SameTagEntityPK implements Serializable {
     private String name;
-    private int sameTagId;
+    private String sameTagName;
 
     @Column(name = "name")
     @Id
@@ -18,14 +18,14 @@ public class SameTagEntityPK implements Serializable {
         this.name = name;
     }
 
-    @Column(name = "same_tag_id")
+    @Column(name = "same_tag_name")
     @Id
-    public int getSameTagId() {
-        return sameTagId;
+    public String getSameTagName() {
+        return sameTagName;
     }
 
-    public void setSameTagId(int sameTagId) {
-        this.sameTagId = sameTagId;
+    public void setSameTagName(String sameTagName) {
+        this.sameTagName = sameTagName;
     }
 
     @Override
@@ -35,16 +35,9 @@ public class SameTagEntityPK implements Serializable {
 
         SameTagEntityPK that = (SameTagEntityPK) o;
 
-        if (sameTagId != that.sameTagId) return false;
+        if (sameTagName != that.sameTagName) return false;
         if (name != null ? !name.equals(that.name) : that.name != null) return false;
 
         return true;
-    }
-
-    @Override
-    public int hashCode() {
-        int result = name != null ? name.hashCode() : 0;
-        result = 31 * result + sameTagId;
-        return result;
     }
 }

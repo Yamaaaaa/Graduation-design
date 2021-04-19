@@ -10,7 +10,7 @@ import java.util.Objects;
 public class UserFeatureEntity {
     private int userId;
     private int topicId;
-    private Double degree;
+    private Float degree;
     private Date lastDate;
 
     @Id
@@ -35,11 +35,11 @@ public class UserFeatureEntity {
 
     @Basic
     @Column(name = "degree")
-    public Double getDegree() {
+    public Float getDegree() {
         return degree;
     }
 
-    public void setDegree(Double degree) {
+    public void setDegree(Float degree) {
         this.degree = degree;
     }
 
@@ -64,7 +64,7 @@ public class UserFeatureEntity {
 
     public UserFeatureEntity(){ }
 
-    public UserFeatureEntity(int userId, int topicId, Double degree, Date lastDate) {
+    public UserFeatureEntity(int userId, int topicId, Float degree, Date lastDate) {
         this.userId = userId;
         this.topicId = topicId;
         this.degree = degree;

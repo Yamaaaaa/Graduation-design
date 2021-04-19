@@ -11,6 +11,7 @@ import java.util.List;
 
 public interface UserHistoryDao extends JpaRepository<UserHistoryEntity, UserHistoryEntityPK> {
     List<UserHistoryEntity> findByUserIdAndUncheck(int userId, boolean uncheck);
-    Page<UserHistoryEntity> findAllByUserId(int userId, Pageable pageable);
+    List<UserHistoryEntity> findAllByUserId(int userId);
+    List<UserHistoryEntity> findTop3ByUserIdOrderByBrowseTimeDesc(int userId);
     void deleteByBrowseTimeBefore(Date date);
 }

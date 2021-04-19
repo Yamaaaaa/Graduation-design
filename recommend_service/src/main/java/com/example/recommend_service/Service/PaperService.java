@@ -29,28 +29,35 @@ public class PaperService {
     @Autowired
     private RestTemplate restTemplate;
 
+    String tagServiceUrl = "tagServiceUrl";
     String getTagNameUrl = "getTagNameUrl";
     String updatePaperTagIndex = "updatePaperTagIndex";
 
-    public Map<Integer, String> getPaperRecommendTag(Integer paper_id){
-        List<Integer> recommendTagId = new ArrayList<>();
+    public List<String> getPaperRecommendTag(Integer paper_id){
+        List<String> recommendTagId = new ArrayList<>();
         for(PaperTagRelationEntity paperTagRelationEntity: paperTagRelationDao.findTop6ByPaperIdOrderByDegreeDesc(paper_id)){
-            recommendTagId.add(paperTagRelationEntity.getTagId());
+            recommendTagId.add(paperTagRelationEntity.getTagName());
         }
-        String sTagName = restTemplate.postForObject(getTagNameUrl, recommendTagId, String.class);
-        System.out.println("tagNameList:"+recommendTagId);
-        Type mapType = new TypeToken<List<String>>(){}.getType();
-        Gson gson = new Gson();
-        return gson.fromJson(sTagName,mapType);
+        return recommendTagId;
     }
 
-    public void addPaperTag(int paperId, List<Integer> tags){
-        PaperInfoEntity paperInfoEntity = paperInfoDao.findById(paperId);
+    public Map<Integer, List<String>> getPaperTagData(List<Integer> paperIdList){
+        Map<Integer, List<String>> paperTagData = new HashMap<>();
+        for(Integer paperId: paperIdList){
+            paperTagData.put(paperId, getPaperRecommendTag(paperId));
+        }
+        return paperTagData;
+    }
 
-        for(Integer tagId: tags){
+    public void addPaperTag(int paperId, List<String> tags){
+        PaperInfoEntity paperInfoEntity = paperInfoDao.findById(paperId);
+        if(paperInfoEntity==null){
+            paperInfoEntity = paperInfoDao.save(new PaperInfoEntity(paperId, 0, 0));
+        }
+        for(String tagId: tags){
             int tagNum = paperInfoEntity.getTaggedNum();
-            if(paperTagRelationDao.existsByPaperIdAndTagId(paperId, tagId)) {
-                PaperTagRelationEntity paperTagRelationEntity = paperTagRelationDao.findByPaperIdAndTagId(paperId, tagId);
+            if(paperTagRelationDao.existsByPaperIdAndTagName(paperId, tagId)) {
+                PaperTagRelationEntity paperTagRelationEntity = paperTagRelationDao.findByPaperIdAndTagName(paperId, tagId);
                 paperTagRelationEntity.setTagNum(paperTagRelationEntity.getTagNum() + 1);
                 paperTagRelationDao.save(paperTagRelationEntity);
             }else{
@@ -62,50 +69,56 @@ public class PaperService {
         paperInfoDao.save(paperInfoEntity);
     }
 
+    //更新论文与标签的相关性数据
     public void updatePaperTag(){
         Set<Integer> needUpdateIndexPaper = new HashSet<>();
         double paper_tag_th = (double)sysInfoDao.findByName("paper_tag_th").getVal()/10;
 
         for(PaperTagRelationEntity paperTagRelationEntity: paperTagRelationDao.findAllByRenew(false)){
             int tagNum = paperInfoDao.findById(paperTagRelationEntity.getPaperId()).getTaggedNum();
-            double degree = (double)paperTagRelationEntity.getTagNum()/tagNum;
-            double oldDegree = paperTagRelationEntity.getDegree();
+            float degree = (float)paperTagRelationEntity.getTagNum()/tagNum;
+            Float oldDegree = paperTagRelationEntity.getDegree();
+            if(oldDegree == null){
+                oldDegree = (float)0;
+            }
             paperTagRelationEntity.setDegree(degree);
             if(0>(oldDegree-paper_tag_th)*(degree-paper_tag_th)){
                 needUpdateIndexPaper.add(paperTagRelationEntity.getPaperId());
             }
             paperTagRelationEntity.setRenew(true);
+            paperTagRelationDao.save(paperTagRelationEntity);
         }
 
-        List<Map<String, String>> papersNewTagIndex = new ArrayList<>();
-        for(Integer paperId: needUpdateIndexPaper){
-            Map<String, String> paperNewTagIndex = new HashMap<>();
-            paperNewTagIndex.put("id", "" + paperId);
-            List<Integer> tagIdList = paperTagRelationDao.findTagIdByPaperIdAndDegreeGreaterThanEqual(paperId, paper_tag_th);
-            String sTagName = restTemplate.postForObject(getTagNameUrl, tagIdList, String.class);
-            System.out.println("tagNameList:"+tagIdList);
-            paperNewTagIndex.put("tags", sTagName);
-            papersNewTagIndex.add(paperNewTagIndex);
-        }
-        restTemplate.postForObject(updatePaperTagIndex, papersNewTagIndex, void.class);
+        //更新论文索引
+//        List<Map<String, String>> papersNewTagIndex = new ArrayList<>();
+//        for(Integer paperId: needUpdateIndexPaper){
+//            Map<String, String> paperNewTagIndex = new HashMap<>();
+//            paperNewTagIndex.put("id", "" + paperId);
+//            List<String> tagIdList = paperTagRelationDao.findTagNameByPaperIdAndDegreeGreaterThanEqual(paperId, (float)paper_tag_th);
+//            System.out.println("tagNameList:"+tagIdList);
+//            paperNewTagIndex.put("tags", sTagName);
+//            papersNewTagIndex.add(paperNewTagIndex);
+//        }
+//        restTemplate.postForObject(updatePaperTagIndex, papersNewTagIndex, void.class);
     }
 
     public void IdaTopicCluster(int nTopics){
-        List<Integer> tagIdList = paperTagRelationDao.findAllTagId();
+        List<String> tagIdList = paperTagRelationDao.findAllTagName();
         List<Integer> paperIdList = paperTagRelationDao.findAllPaperId();
 
-        String baseCommand = "python ldaCluster.py ";
+        String baseCommand = "python ldaCluster.py";
         String commandStr = nTopics + " " + tagIdList.size() + " " + paperIdList.size();
 
         for (Integer paperId : paperIdList) {
-            for(Integer tagId: tagIdList) {
-                if(paperTagRelationDao.existsByPaperIdAndTagId(paperId, tagId)){
-                    commandStr += " " + paperTagRelationDao.findByPaperIdAndTagId(paperId, tagId).getTagNum();
+            for(String tagName: tagIdList) {
+                if(paperTagRelationDao.existsByPaperIdAndTagName(paperId, tagName)){
+                    commandStr += " " + paperTagRelationDao.findByPaperIdAndTagName(paperId, tagName).getTagNum();
                 }else{
                     commandStr += " " + 0;
                 }
             }
         }
+
 
         String filePath = "tagCountData.txt";
         try{
@@ -124,26 +137,52 @@ public class PaperService {
             InputStreamReader in =new InputStreamReader(pr.getInputStream());
 //		BufferedReader stdError = new BufferedReader(new InputStreamReader(pr.getErrorStream()));
             LineNumberReader input = new LineNumberReader(in);
-            line = input.readLine();
+            for(int i=0; i<paperIdList.size(); ++i) {
+                line = input.readLine();
+                System.out.println("line："+line);
+                line = line.substring(2, line.length()-1);
+                if(i == paperIdList.size()-1){
+                    line = line.substring(0, line.length()-1);
+                }
+                String[] groupNums = line.trim().split("\\s+");
+                System.out.println("计算结果："+groupNums[0] + "  " + groupNums[1] + "  " + groupNums[2] + "  ");
+                for(int j=0; j<nTopics; ++j){
+                    paperFeatureDao.save(new PaperFeatureEntity(paperIdList.get(i), j, Float.parseFloat(groupNums[j])));
+                }
+            }
+            int loop = nTopics *(tagIdList.size()/6);
+            int endNum = tagIdList.size()/6;
+            if(tagIdList.size()%6 != 0){
+                loop += nTopics;
+            }
+            System.out.println("loop:" + loop);
+            for(int i=0; i<loop; ++i){
+                line = input.readLine();
+                if(i%(endNum+1)==0){
+                    line = line.substring(2, line.length());
+                }else if(i == loop - 1){
+                    line = line.substring(0, line.length()-2);
+                }else if(i%endNum == 0){
+                    line = line.substring(0, line.length()-1);
+                }
+                System.out.println("计算结果："+line);
+                String[] groupNums = line.trim().split("\\s+");
+                int loop2 = 6;
+                if(tagIdList.size() < 6){
+                    loop2 = tagIdList.size();
+                }
+                for(int j=0; j<loop2; ++j){
+                    if(j <= groupNums.length){
+                        break;
+                    }
+                    topicTagRelationDao.save(new TopicTagRelationEntity(i, tagIdList.get(j), Float.parseFloat(groupNums[j])));
+                }
+            }
             input.close();
             in.close();
-            System.out.println("计算结果："+line);
+
         } catch (IOException e1) {
             e1.printStackTrace();
-        }
-
-        String[] groupNums = line.split(" ");
-        int count = 0;
-        for(int i=0; i<paperIdList.size(); ++i){
-            for(int j=0; j<nTopics; ++j){
-                paperFeatureDao.save(new PaperFeatureEntity(paperIdList.get(i), j, Double.parseDouble(groupNums[count++])));
-            }
-        }
-
-        for(int i=0; i<nTopics; ++i){
-            for(int j=0; j<tagIdList.size(); ++j){
-                topicTagRelationDao.save(new TopicTagRelationEntity(i, tagIdList.get(j), Double.parseDouble(groupNums[count++])));
-            }
         }
 
     }
@@ -159,24 +198,44 @@ public class PaperService {
         List<PaperFeatureData> paperFeatureData = new ArrayList<>();
         float paper_tag_th = sysInfoDao.findByName("paper_tag_th").getVal()/10;
 
-        Map<Integer, Double> paperTagRelation = new HashMap<>();
+        Map<String, Float> paperTagRelation = new HashMap<>();
         List<PaperTagRelationEntity> paperTagRelationEntities = paperTagRelationDao.findByPaperIdAndDegreeGreaterThanEqual(paperId, paper_tag_th);
         for(PaperTagRelationEntity paperTagRelationEntity: paperTagRelationEntities){
-            paperTagRelation.put(paperTagRelationEntity.getTagId(), paperTagRelationEntity.getDegree());
+            paperTagRelation.put(paperTagRelationEntity.getTagName(), paperTagRelationEntity.getDegree());
         }
 
         for(PaperFeatureEntity paperFeatureEntity: paperFeatureDao.findByPaperIdAndDegreeGreaterThanEqual(paperId, paper_tag_th)){
             int topicId = paperFeatureEntity.getTopicId();
-            Double topicDegree = paperFeatureEntity.getDegree();
+            Float topicDegree = paperFeatureEntity.getDegree();
             String topicName = topicDao.findById(topicId).getName();
-            Map<Integer, Double> topicTag = new HashMap<>();
-            for(Map.Entry<Integer, Double> entry: paperTagRelation.entrySet()){
-                if(topicTagRelationDao.existsByTopicIdAndTagIdAndDegreeGreaterThanEqual(topicId, entry.getKey(), paper_tag_th)){
+            Map<String, Float> topicTag = new HashMap<>();
+            for(Map.Entry<String, Float> entry: paperTagRelation.entrySet()){
+                if(topicTagRelationDao.existsByTopicIdAndTagNameAndDegreeGreaterThanEqual(topicId, entry.getKey(), paper_tag_th)){
                     topicTag.put(entry.getKey(), entry.getValue());
                 }
             }
             paperFeatureData.add(new PaperFeatureData(topicId, topicName, topicDegree, topicTag));
         }
         return paperFeatureData;
+    }
+
+    public PaperTopicRankData getPaperTopicRankData(int paperId){
+        PaperTopicRankData paperTopicRankData = new PaperTopicRankData();
+        List<String> topics = new ArrayList<>();
+        List<Float> values = new ArrayList<>();
+        List<PaperFeatureEntity> paperFeatureEntities = paperFeatureDao.findAllByPaperId(paperId);
+        for(PaperFeatureEntity paperFeatureEntity: paperFeatureEntities){
+            topics.add(topicDao.findById(paperFeatureEntity.getTopicId()).getName());
+            values.add(paperFeatureEntity.getDegree());
+        }
+        paperTopicRankData.setTopicsName(topics);
+        paperTopicRankData.setTopicsRelate(values);
+        return paperTopicRankData;
+    }
+
+    public void initTagPaper(Map<Integer, List<String>> tagPaperData){
+        for(Map.Entry<Integer, List<String>> tagPaper: tagPaperData.entrySet()){
+            addPaperTag(tagPaper.getKey(), tagPaper.getValue());
+        }
     }
 }

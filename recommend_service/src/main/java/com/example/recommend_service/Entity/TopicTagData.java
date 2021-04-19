@@ -1,11 +1,13 @@
 package com.example.recommend_service.Entity;
 
+import java.util.List;
 import java.util.Map;
 
 public class TopicTagData {
     int topicId;
     String topicName;
-    Map<Integer, Double> tagRelation;
+    List<String> tag;
+    List<Float> value;
 
     public void setTopicId(int topicId) {
         this.topicId = topicId;
@@ -15,9 +17,6 @@ public class TopicTagData {
         this.topicName = topicName;
     }
 
-    public void setTagRelation(Map<Integer, Double> tagRelation) {
-        this.tagRelation = tagRelation;
-    }
 
     public int getTopicId() {
         return topicId;
@@ -27,13 +26,26 @@ public class TopicTagData {
         return topicName;
     }
 
-    public Map<Integer, Double> getTagRelation() {
-        return tagRelation;
+    public List<String> getTag() {
+        return tag;
     }
 
-    public TopicTagData(int topicId, String topicName, Map<Integer, Double> tagRelation) {
+    public void setTag(List<String> tag) {
+        this.tag = tag;
+    }
+
+    public List<Float> getValue() {
+        return value;
+    }
+
+    public void setValue(List<Float> value) {
+        this.value = value;
+    }
+
+    public TopicTagData(int topicId, String topicName, List<String> tag, List<Float> value) {
         this.topicId = topicId;
         this.topicName = topicName;
-        this.tagRelation = tagRelation;
+        this.tag = tag;
+        this.value = value;
     }
 }

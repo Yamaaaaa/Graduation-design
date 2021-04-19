@@ -15,5 +15,6 @@ public interface PaperSimpleDao extends JpaRepository<PaperSimpleEntity, Integer
 
     Page<PaperSimpleEntity> findAll(Pageable pageable);
 
+    PaperSimpleEntity findById(int paperId);
     List<PaperSimpleEntity> findTop20ByOrderByRecentBrowseNumDesc();
 }

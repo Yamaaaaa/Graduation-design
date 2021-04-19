@@ -9,26 +9,28 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
 import java.util.List;
+import java.util.Set;
 
 public interface PaperTagRelationDao extends JpaRepository<PaperTagRelationEntity, PaperTagRelationEntityPK> {
     List<PaperTagRelationEntity> findTop6ByPaperIdOrderByDegreeDesc(int paperId);
-    void deleteByTagId(int tag_id);
-    List<PaperTagRelationEntity> findByTagId(int tag_id);
-    PaperTagRelationEntity findByPaperIdAndTagId(int paper_id, int tag_id);
-    boolean existsByPaperIdAndTagId(int paper_id, int tag_id);
+    void deleteByTagName(String tagName);
+    List<PaperTagRelationEntity> findByTagName(String tagName);
+    PaperTagRelationEntity findByPaperIdAndTagName(int paper_id, String tagName);
+    boolean existsByPaperIdAndTagName(int paper_id, String tagName);
 
-    @Query(value = "select distinct tag_id from paper_tag_relation ", nativeQuery = true)
-    List<Integer> findAllTagId();
+    @Query(value = "select distinct tag_name from paper_tag_relation ", nativeQuery = true)
+    List<String> findAllTagName();
 
     @Query(value = "select distinct paper_id from paper_tag_relation ", nativeQuery = true)
     List<Integer> findAllPaperId();
 
-    @Query(value = "select paper_id from paper_tag_relation where tag_id=?1 and degree>?2 order by degree desc", nativeQuery = true)
-    List<Integer> getPaperIdByTagIdAndDegree(int tagId, float degree, Pageable pageable);
+    List<PaperTagRelationEntity> findAllByTagNameAndDegreeGreaterThan(String tagName, float degree);
 
-    @Query(value = "select tag_id from paper_tag_relation where paper_id=?1 and degree>?2", nativeQuery = true)
-    List<Integer> findTagIdByPaperIdAndDegreeGreaterThanEqual(int paperId, double degree);
+    @Query(value = "select tag_name from paper_tag_relation where paper_id=?1 and degree>?2", nativeQuery = true)
+    Set<String> findTagNameByPaperIdAndDegreeGreaterThanEqual(int paperId, float degree);
 
-    List<PaperTagRelationEntity> findByPaperIdAndDegreeGreaterThanEqual(int paperId, double degree);
+    List<PaperTagRelationEntity> findByPaperIdAndDegreeGreaterThanEqual(int paperId, float degree);
     List<PaperTagRelationEntity> findAllByRenew(boolean renew);
+
+    boolean existsByPaperIdAndTagNameAndDegreeGreaterThan(int paperId, String tagName, float degree);
 }
