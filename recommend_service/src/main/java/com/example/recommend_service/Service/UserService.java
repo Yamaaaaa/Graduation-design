@@ -281,8 +281,6 @@ public class UserService {
         }
 
         List<Float> relateList = calculateSimilarity(userRelateValueList, paperRelateValueList);
-        Collections.sort(relateList);
-        Collections.reverse(relateList);
         System.out.println("relateList:"+relateList);
 
         for(int i=0; i<paperIdList.size(); ++i){
