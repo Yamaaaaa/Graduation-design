@@ -1,5 +1,6 @@
 package com.example.user_service.Controller;
 
+import com.example.user_service.Entity.UserActionData;
 import com.example.user_service.Entity.UserInfoEntity;
 import com.example.user_service.Entity.UserSubscribeData;
 import com.example.user_service.Service.AccountService;
@@ -38,13 +39,18 @@ public class AccountController {
     }
 
     @PostMapping("/userShare")
-    public void share(@RequestBody Integer userId, @RequestBody Integer paperId){
-        accountService.share(userId, paperId);
+    public void share(@RequestBody UserActionData userActionData){
+        accountService.share(userActionData);
+    }
+
+    @GetMapping("/getUserShare")
+    public List<Integer> getShare(@RequestParam int userId){
+        return accountService.getShare(userId);
     }
 
     @PostMapping("/addSubscribe")
-    public void addSubscribe(@RequestBody Integer userId, @RequestBody Integer subId){
-        accountService.addSubscribe(userId, subId);
+    public void addSubscribe(@RequestBody UserActionData userActionData){
+        accountService.addSubscribe(userActionData);
     }
 
     @GetMapping("/userSubscribe")

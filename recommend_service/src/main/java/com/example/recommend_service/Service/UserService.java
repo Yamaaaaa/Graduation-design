@@ -135,11 +135,19 @@ public class UserService {
         return (int) ((date2.getTime() - date1.getTime()) / (1000*3600*24));
     }
 
-    public void updateHistory(int userId, List<UserHistoryEntity> userHistories){
-        for(UserHistoryEntity userHistoryEntity: userHistories){
-            userHistoryDao.save(new UserHistoryEntity(userId, userHistoryEntity.getPaperId(), new Date(), true));
+    public void updateHistory(int userId, Set<Integer> userHistories){
+        for(Integer paperId: userHistories){
+            userHistoryDao.save(new UserHistoryEntity(userId, paperId, new Date(), true));
         }
+
         UserFeatureInfoEntity userFeatureInfoEntity = userFeatureInfoDao.findById(userId);
+        if(userFeatureInfoEntity == null){
+            userFeatureInfoEntity = new UserFeatureInfoEntity();
+            userFeatureInfoEntity.setId(userId);
+            userFeatureInfoEntity.setBrowseNum(userHistories.size());
+            userFeatureInfoEntity.setLastRenewDate(new Date());
+        }
+
         userFeatureInfoEntity.setRenew(true);
         userFeatureInfoDao.save(userFeatureInfoEntity);
     }
@@ -182,7 +190,7 @@ public class UserService {
         return topicIdList;
     }
 
-    public Map<Integer, Set<String>> getRecommendPaper(int userId, int pageNum){
+    public Map<Integer, List<String>> getRecommendPaper(int userId, int pageNum){
         Set<Integer> paperIdList = new HashSet<>();
         List<UserPaperSimilarityEntity> userPaperSimilarityEntities = userPaperSimilarityDao.findByUserIdAndRelateValueGreaterThanOrderByRelateValueDesc(userId, relateValue, PageRequest.of(pageNum, 10));
         for(UserPaperSimilarityEntity userPaperSimilarityEntity: userPaperSimilarityEntities){
@@ -199,9 +207,9 @@ public class UserService {
 
         removeDislike(userId, paperIdList);
 
-        Map<Integer, Set<String>> paperData = new HashMap<>();
+        Map<Integer, List<String>> paperData = new HashMap<>();
         for(Integer paperId: paperIdList){
-            Set<String> tags = paperTagRelationDao.findTagNameByPaperIdAndDegreeGreaterThanEqual(paperId, paperTagRelateValue);
+            List<String> tags = paperTagRelationDao.findTagNameByPaperIdAndDegreeGreaterThanEqual(paperId, paperTagRelateValue);
             paperData.put(paperId, tags);
         }
 
@@ -236,7 +244,7 @@ public class UserService {
 
         Map<Integer, SquarePaperRecommendData> squarePaperDataList = new HashMap<>();
         for(Map.Entry<String, UserSubscribeData> entry: squarePaperIdList.entrySet()){
-            Set<String> tags = paperTagRelationDao.findTagNameByPaperIdAndDegreeGreaterThanEqual(Integer.parseInt(entry.getKey()), paperTagRelateValue);
+            List<String> tags = paperTagRelationDao.findTagNameByPaperIdAndDegreeGreaterThanEqual(Integer.parseInt(entry.getKey()), paperTagRelateValue);
             SquarePaperRecommendData squarePaperRecommendData = new SquarePaperRecommendData();
             squarePaperRecommendData.setUserSubscribeData(entry.getValue());
             squarePaperRecommendData.setTags(tags);

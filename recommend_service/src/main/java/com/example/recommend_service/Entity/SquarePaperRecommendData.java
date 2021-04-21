@@ -5,7 +5,7 @@ import java.util.Set;
 
 public class SquarePaperRecommendData {
     UserSubscribeData userSubscribeData;
-    Set<String> tags;
+    List<String> tags;
 
     public UserSubscribeData getUserSubscribeData() {
         return userSubscribeData;
@@ -15,11 +15,11 @@ public class SquarePaperRecommendData {
         this.userSubscribeData = userSubscribeData;
     }
 
-    public Set<String> getTags() {
+    public List<String> getTags() {
         return tags;
     }
 
-    public void setTags(Set<String> tags) {
+    public void setTags(List<String> tags) {
         this.tags = tags;
     }
 }

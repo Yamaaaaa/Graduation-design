@@ -83,14 +83,14 @@ CREATE TABLE USER_DISLIKE_TAG(
 CREATE TABLE USER_PAPER_SIMILARITY(
     user_id int,
     paper_id int,
-    relateValue float,
+    relate_value float,
     primary key (user_id, paper_id)
 );
 
 CREATE TABLE USER_PAPER_SIMILARITY(
     user_id int,
     paper_id int,
-    relateValue float,
+    relate_value float,
     primary key (user_id, paper_id)
 );
 

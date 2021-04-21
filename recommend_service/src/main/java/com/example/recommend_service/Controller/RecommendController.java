@@ -32,8 +32,10 @@ public class RecommendController {
     }
 
     @PostMapping("/updateHistory")
-    void updateHistory(@RequestBody Integer userId, @RequestBody List<UserHistoryEntity> userHistories){
-        userService.updateHistory(userId, userHistories);
+    void updateHistory(@RequestBody Map<Integer, Set<Integer>> userHistories){
+        for(Map.Entry<Integer, Set<Integer>> entry: userHistories.entrySet()){
+            userService.updateHistory(entry.getKey(), entry.getValue());
+        }
     }
 
     @GetMapping("/getUserHistory")
@@ -111,7 +113,7 @@ public class RecommendController {
     }
 
     @GetMapping("/getRecommendPaperIdList")
-    Map<Integer, Set<String>> getRecommendPaperIdList(@RequestParam int userId, @RequestParam int pageNum){
+    Map<Integer, List<String>> getRecommendPaperIdList(@RequestParam int userId, @RequestParam int pageNum){
         return userService.getRecommendPaper(userId, pageNum);
     }
 

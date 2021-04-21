@@ -38,6 +38,7 @@ public class PaperService {
         for(PaperTagRelationEntity paperTagRelationEntity: paperTagRelationDao.findTop6ByPaperIdOrderByDegreeDesc(paper_id)){
             recommendTagId.add(paperTagRelationEntity.getTagName());
         }
+        System.out.println("paperTagData: " + recommendTagId);
         return recommendTagId;
     }
 
@@ -46,6 +47,7 @@ public class PaperService {
         for(Integer paperId: paperIdList){
             paperTagData.put(paperId, getPaperRecommendTag(paperId));
         }
+        System.out.println("paperTagData: " + paperTagData);
         return paperTagData;
     }
 

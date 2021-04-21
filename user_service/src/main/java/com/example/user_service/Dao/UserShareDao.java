@@ -9,4 +9,5 @@ import java.util.List;
 
 public interface UserShareDao extends JpaRepository<UserShareEntity, UserShareEntityPK> {
     List<UserShareEntity> findTop3ByUserId(int userId);
+    List<UserShareEntity> findAllByUserId(int userId);
 }

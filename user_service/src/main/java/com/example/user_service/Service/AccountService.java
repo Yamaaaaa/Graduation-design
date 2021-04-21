@@ -100,18 +100,48 @@ public class AccountService implements UserDetailsService {
         userDisDao.save(new UserDisEntity(userId, disId));
     }
 
-    public void share(int userId, int paperId){
-        userShareDao.save(new UserShareEntity(userId, paperId));
+    public void share(UserActionData userActionData){
+        int userId = userActionData.getUserId();
+        for(Map.Entry<Integer, Boolean> entry: userActionData.getActions().entrySet()){
+            UserShareEntity userShareEntity = new UserShareEntity();
+            userShareEntity.setUserId(userId);
+            userShareEntity.setPaperId(entry.getKey());
+            if(entry.getValue()){
+                userShareDao.save(userShareEntity);
+            }else{
+                userShareDao.delete(userShareEntity);
+            }
+        }
     }
 
-    public void addSubscribe(int userId, int subId){
-        userSubscribeDao.save(new UserSubscribeEntity(userId, subId));
+    public List<Integer> getShare(int userId){
+        List<Integer> paperIdList = new ArrayList<>();
+        for(UserShareEntity userShareEntity : userShareDao.findAllByUserId(userId)){
+            paperIdList.add(userShareEntity.getPaperId());
+        }
+        return paperIdList;
+    }
+
+    public void addSubscribe(UserActionData userActionData){
+        int userId = userActionData.getUserId();
+        for(Map.Entry<Integer, Boolean> entry: userActionData.getActions().entrySet()){
+            UserSubscribeEntity userSubscribeEntity = new UserSubscribeEntity();
+            userSubscribeEntity.setUserId(userId);
+            userSubscribeEntity.setSubId(entry.getKey());
+            if(entry.getValue()){
+                userSubscribeDao.save(userSubscribeEntity);
+            }else{
+                userSubscribeDao.delete(userSubscribeEntity);
+            }
+        }
     }
 
     public List<UserSubscribeData> getSubscribe(int userId){
         List<UserSubscribeData> result = new ArrayList<>();
         List<Integer> usersId = userSubscribeDao.findAllByUserId(userId);
         for(Integer id: usersId){
+            if(userInfoDao.findById((int)id) == null)
+                continue;
             UserSubscribeData userSubscribeData = new UserSubscribeData();
             userSubscribeData.setUserId(id);
             userSubscribeData.setUserName(userInfoDao.findById((int)id).getName());

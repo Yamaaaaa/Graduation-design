@@ -9,14 +9,13 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.http.server.reactive.HttpHandler;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
-import org.apache.lucene.index.DirectoryReader;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
-import java.io.IOException;
 import java.lang.reflect.Type;
 import java.util.*;
 
@@ -33,6 +32,7 @@ public class PaperService {
     @Autowired
     private RestTemplate restTemplate;
 
+    String userServiceUrl = "http://localhost:50004/";
     String recommendServiceUrl = "http://localhost:50002/";
     String tagServiceUrl = "http://localhost:50003/";
     String getUserHistoryData = "getUserHistory";
@@ -41,6 +41,7 @@ public class PaperService {
     String getSquarePaperList = "getSquarePaperIdList";
     String addPaperTag = "addPaperTag";
     String getPaperTagData = "getPaperTagData";
+    String getSharePaperId = "getUserShare";
 
 
     public List<PaperSimpleEntity> getPaperSimpleDataList(List<Integer> paperIDList) {
@@ -63,8 +64,9 @@ public class PaperService {
         Gson gson = new Gson();
         String url = recommendServiceUrl + getPaperTagData;
         Map<String, List<String>> paperTagData = new HashMap<>();
-        paperTagData = gson.fromJson(restTemplate.postForObject(url, paperIdList, String.class), paperTagData.getClass());
-
+        //Type type = new TypeToken<Map<String, List<String>>>(){}.getType();
+        paperTagData = restTemplate.postForObject(url, paperIdList, paperTagData.getClass());
+        System.out.print("paperTagData: " + paperTagData);
         List<PaperSimpleData> hotPaperList = new ArrayList<>();
         for(PaperEntity paperEntity: paperEntityList){
             PaperSimpleData paperSimpleData = new PaperSimpleData();
@@ -305,15 +307,17 @@ public class PaperService {
         map.put("userId", userId);
         String url = recommendServiceUrl + getSquarePaperList +"?userId=" + userId +"&pageNum="+pageNum;
         System.out.println("getSquarePaperUrl:" + url);
-        Map<Integer, SquarePaperRecommendData> paperIdList;
-        Gson gson = new Gson();
-        Type type = new TypeToken<Map<Integer, SquarePaperRecommendData>>(){}.getType();
-        String respond = restTemplate.getForObject(url, String.class);
-        paperIdList = gson.fromJson(respond, type);
+        Map<String, SquarePaperRecommendData> paperIdList = new HashMap<>();
 
+        String respond = restTemplate.getForObject(url, String.class);
+        System.out.println("respond: " + respond);
+        Gson gson = new Gson();
+        Type type = new TypeToken<Map<String, SquarePaperRecommendData>>(){}.getType();
+        paperIdList = gson.fromJson(respond, type);
+        System.out.println("squarePaperTagData: " + paperIdList);
         List<SquarePaperData> squarePaperList = new ArrayList<>();
-        for(Map.Entry<Integer, SquarePaperRecommendData> entry: paperIdList.entrySet()){
-            PaperEntity paperEntity = paperDao.findById((int)entry.getKey());
+        for(Map.Entry<String, SquarePaperRecommendData> entry: paperIdList.entrySet()){
+            PaperEntity paperEntity = paperDao.findById(Integer.parseInt(entry.getKey()));
             SquarePaperData squarePaperData = new SquarePaperData();
             squarePaperData.setPaperEntity(paperEntity);
             squarePaperData.setSquarePaperRecommendData(entry.getValue());
@@ -323,8 +327,10 @@ public class PaperService {
     }
 
     public List<Integer> searchPaper(String searchText){
+        searchText = "%" + searchText + "%";
+        System.out.println("searchText:" + searchText);
         List<Integer> paperId = new ArrayList<>();
-        for(PaperEntity paperEntity: paperDao.findAllByTitleContainsOrAbstContains(searchText, searchText)){
+        for(PaperEntity paperEntity: paperDao.findAllByTitleLikeOrAbstLike(searchText, searchText)){
             paperId.add(paperEntity.getId());
         }
         return paperId;
@@ -337,5 +343,40 @@ public class PaperService {
         return getPaperSimpleData(paperTagData);
     }
 
+    public List<PaperSimpleData> searchPaperForUser(String searchText){
+        List<Integer> paperIdList = searchPaper(searchText);
+        System.out.println("searchPaperIdList" + paperIdList);
+        String url = recommendServiceUrl + getPaperTagData;
+        Map<String, List<String>> paperTagData = new HashMap<>();
+        //Type type = new TypeToken<Map<String, List<String>>>(){}.getType();
+        paperTagData = restTemplate.postForObject(url, paperIdList, paperTagData.getClass());
 
+        List<PaperSimpleData> paperSimpleDataList = new ArrayList<>();
+        for(Map.Entry<String, List<String>> entry: paperTagData.entrySet()){
+            PaperSimpleData paperSimpleData = new PaperSimpleData();
+            paperSimpleData.setPaperEntity(paperDao.findById(Integer.parseInt(entry.getKey())));
+            paperSimpleData.setTags(entry.getValue());
+            paperSimpleDataList.add(paperSimpleData);
+        }
+
+        return paperSimpleDataList;
+    }
+
+    public List<PaperSimpleData> userSharePaper(int userId){
+        List<Integer> paperIdList = new ArrayList<>();
+        paperIdList = restTemplate.getForObject(userServiceUrl + getSharePaperId + "?userId=" + userId, paperIdList.getClass());
+        Map<String, List<String>> paperTagData = new HashMap<>();
+        //Type type = new TypeToken<Map<String, List<String>>>(){}.getType();
+        paperTagData = restTemplate.postForObject(recommendServiceUrl + getPaperTagData, paperIdList, paperTagData.getClass());
+        System.out.println("paperTagDataUrl: " + recommendServiceUrl + getPaperTagData);
+        System.out.println("paperTagData: " + paperTagData);
+        List<PaperSimpleData> paperSimpleDataList = new ArrayList<>();
+        for(Integer paperId: paperIdList){
+            PaperSimpleData paperSimpleData = new PaperSimpleData();
+            paperSimpleData.setPaperEntity(paperDao.findById((int)paperId));
+            paperSimpleData.setTags(paperTagData.get("" + paperId));
+            paperSimpleDataList.add(paperSimpleData);
+        }
+        return paperSimpleDataList;
+    }
 }

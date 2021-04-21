@@ -49,24 +49,26 @@ public class PaperController {
         paperService.increaseBrowseNum(paperId);
     }
 
-//    @GetMapping("/paperPage")
-//    public List<PaperSimpleEntity> getPaperPage(@RequestParam int page_num, @RequestParam int page_size){
-//        return paperService.getPaperPage(page_num, page_size);
-//    }
-//
-//    @GetMapping("/managePaperPage")
-//    public List<PaperEntity> getManagePaperPage(@RequestParam int page_num, @RequestParam int page_size){
-//        return paperService.getManagePaperPage(page_num, page_size);
-//    }
-//
-//    @PostMapping("/addPaper")
-//    public void addPaper(@RequestBody List<PaperImportData> paperImportData) throws Exception {
-//        paperService.addPaper(paperImportData);
-//    }
+    //用户历史记录论文列表
+    @GetMapping("/userHistory")
+    public List<PaperSimpleData> getUserHistory(@RequestParam int userId){
+        return paperService.getUserHistoryData(userId);
+    }
 
     //搜索论文
-    @GetMapping("/searchPaper")
+    @GetMapping("/searchPaperForManager")
     public List<PaperEntity> searchPaperForManager(@RequestParam String searchText) throws Exception {
         return paperService.getManagePaperPage(paperService.searchPaper(searchText));
     }
+
+    @GetMapping("/searchPaper")
+    public List<PaperSimpleData> searchPaper(@RequestParam String searchText){
+        return paperService.searchPaperForUser(searchText);
+    }
+
+    @GetMapping("/userSharePaper")
+    public List<PaperSimpleData> userSharePaper(@RequestParam int userId){
+        return paperService.userSharePaper(userId);
+    }
+
 }

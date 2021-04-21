@@ -27,7 +27,7 @@ public interface PaperTagRelationDao extends JpaRepository<PaperTagRelationEntit
     List<PaperTagRelationEntity> findAllByTagNameAndDegreeGreaterThan(String tagName, float degree);
 
     @Query(value = "select tag_name from paper_tag_relation where paper_id=?1 and degree>?2", nativeQuery = true)
-    Set<String> findTagNameByPaperIdAndDegreeGreaterThanEqual(int paperId, float degree);
+    List<String> findTagNameByPaperIdAndDegreeGreaterThanEqual(int paperId, float degree);
 
     List<PaperTagRelationEntity> findByPaperIdAndDegreeGreaterThanEqual(int paperId, float degree);
     List<PaperTagRelationEntity> findAllByRenew(boolean renew);
