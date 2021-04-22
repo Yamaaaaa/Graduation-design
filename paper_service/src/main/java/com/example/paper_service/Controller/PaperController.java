@@ -44,9 +44,9 @@ public class PaperController {
     }
 
     //浏览论文
-    @GetMapping("/browseNum")
-    public void addBrowseNum(@RequestParam int paperId){
-        paperService.increaseBrowseNum(paperId);
+    @PostMapping("/browseNum")
+    public void addBrowseNum(@RequestBody List<Integer> paperIdList){
+        paperService.increaseBrowseNum(paperIdList);
     }
 
     //用户历史记录论文列表

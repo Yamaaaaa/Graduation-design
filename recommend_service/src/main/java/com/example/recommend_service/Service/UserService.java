@@ -41,6 +41,7 @@ public class UserService {
     @Autowired
     private RestTemplate restTemplate;
 
+    private String recommendServiceUrl = "http://localhost:50002/";
     private String accountServiceUrl = "http://localhost:50004/";
     private String paperServiceUrl = "http://localhost:50001/";
     private String getSquarePaperList = "squarePaperList";
@@ -150,6 +151,8 @@ public class UserService {
 
         userFeatureInfoEntity.setRenew(true);
         userFeatureInfoDao.save(userFeatureInfoEntity);
+
+        restTemplate.postForObject(recommendServiceUrl + "browseNum", userHistories, void.class);
     }
 
     public List<PaperSimpleEntity> getHistory(int userId){
@@ -230,6 +233,7 @@ public class UserService {
         }
         Map<String, Object> map = new HashMap<>();
         map.put("userId", userId);
+        map.put("pageNum", pageNum);
         map.put("sameUserList", sameUserIdList);
         String url = accountServiceUrl + getSquarePaperList;
         Map<String, UserSubscribeData> squarePaperIdList = new HashMap<>();
@@ -323,8 +327,6 @@ public class UserService {
         List<Float> relateList = calculateSimilarity(userRelateValueList, otherUserRelateValueList);
         System.out.println("userIdList" + userIdList);
         System.out.println("relateList" + relateList);
-        Collections.sort(relateList);
-        Collections.reverse(relateList);
 
         for(int i=0; i<userIdList.size(); ++i){
             UserSimilarityEntity userSimilarityEntity = new UserSimilarityEntity();

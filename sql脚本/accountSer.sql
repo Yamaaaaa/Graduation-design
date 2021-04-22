@@ -5,7 +5,7 @@ USE ACCOUNT;
 CREATE TABLE USER_INFO(
     id int auto_increment,
     name varchar(20),
-    password varchar(20),
+    password varchar(100),
     role varchar(10),
     sub_num int,
     primary key (id)

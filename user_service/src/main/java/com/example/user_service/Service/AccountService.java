@@ -7,6 +7,7 @@ import com.example.user_service.Dao.UserSubscribeDao;
 import com.example.user_service.Entity.*;
 import com.example.user_service.Util.MyPasswordEncoder;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -66,7 +67,7 @@ public class AccountService implements UserDetailsService {
         return false;
     }
 
-    public Map<Integer, UserSubscribeData> getSquarePaperList(int user_id, List<Integer> sameUserList){
+    public Map<Integer, UserSubscribeData> getSquarePaperList(int user_id, int pageNum, List<Integer> sameUserList){
         Map<Integer, UserSubscribeData> paperSet = new HashMap<>();
         Set<Integer> recommendUserSet = new HashSet<>();
         List<Integer> subUserList = userSubscribeDao.findAllByUserId(user_id);
@@ -78,7 +79,7 @@ public class AccountService implements UserDetailsService {
         }
         recommendUserSet.remove(userDisDao.findAllByUserId(user_id));
         for(Integer recommendUserId: recommendUserSet){
-            for(UserShareEntity userShareEntity: userShareDao.findTop3ByUserId(recommendUserId)){
+            for(UserShareEntity userShareEntity: userShareDao.findByUserId(recommendUserId, PageRequest.of(pageNum, 4))){
                 if(!paperSet.containsKey(userShareEntity.getPaperId())) {
                     UserSubscribeData userSubscribeData = new UserSubscribeData();
                     userSubscribeData.setUserId(userShareEntity.getUserId());

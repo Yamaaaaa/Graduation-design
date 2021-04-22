@@ -115,22 +115,24 @@ public class PaperService {
         return paperDao.findAllById(paperIdList);
     }
 
-    public void increaseBrowseNum(int paperID) {
-        PaperEntity paperEntity = paperDao.findById(paperID);
-        paperEntity.setBrowseNum(paperEntity.getRecentBrowseNum() + 1);
-        paperDao.save(paperEntity);
-        int serNum = sysInfoDao.findByName("current_ser_num").getVal();
+    public void increaseBrowseNum(List<Integer> paperIdList) {
+        for(Integer paperID: paperIdList) {
+            PaperEntity paperEntity = paperDao.findById((int)paperID);
+            paperEntity.setBrowseNum(paperEntity.getRecentBrowseNum() + 1);
+            paperDao.save(paperEntity);
+            int serNum = sysInfoDao.findByName("current_ser_num").getVal();
 
-        PaperHotEntity paperHotEntity = paperHotDao.findByPaperIdAndSerNum(paperID, serNum);
-        if(paperHotEntity == null){
-            PaperHotEntity temp = new PaperHotEntity();
-            temp.setBrowseNum(0);
-            temp.setPaperId(paperID);
-            temp.setSerNum(serNum);
-            paperHotEntity = paperHotDao.save(temp);
+            PaperHotEntity paperHotEntity = paperHotDao.findByPaperIdAndSerNum(paperID, serNum);
+            if (paperHotEntity == null) {
+                PaperHotEntity temp = new PaperHotEntity();
+                temp.setBrowseNum(0);
+                temp.setPaperId(paperID);
+                temp.setSerNum(serNum);
+                paperHotEntity = paperHotDao.save(temp);
+            }
+            paperHotEntity.setBrowseNum(paperHotEntity.getBrowseNum() + 1);
+            paperHotDao.save(paperHotEntity);
         }
-        paperHotEntity.setBrowseNum(paperHotEntity.getBrowseNum() + 1);
-        paperHotDao.save(paperHotEntity);
     }
 
     public void updatePaperRecentBrowseNum() {
@@ -220,6 +222,9 @@ public class PaperService {
 
         System.out.println("paperTagData" + paperTagData);
         restTemplate.postForObject(tagServiceUrl + addPaperTag, paperTagData, void.class);
+        restTemplate.getForObject(tagServiceUrl + "initTag", void.class);
+        restTemplate.getForObject(recommendServiceUrl + "updatePaperTag", void.class);
+        restTemplate.getForObject(recommendServiceUrl + "cluster?topicNum=3", void.class);
     }
 
 //    public void createPaperIndexDB(PaperImportData paperImportdata) throws Exception {

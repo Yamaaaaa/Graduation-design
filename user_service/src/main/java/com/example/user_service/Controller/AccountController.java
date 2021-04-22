@@ -29,8 +29,9 @@ public class AccountController {
     @PostMapping("/squarePaperList")
     public Map<Integer, UserSubscribeData> getSquarePaperList(@RequestBody Map<String, Object> map){
         int userId = (int) map.get("userId");
+        int pageNum = (int) map.get("pageNum");
         List<Integer> sameUserList = (List<Integer>) map.get("sameUserList");
-        return accountService.getSquarePaperList(userId, sameUserList);
+        return accountService.getSquarePaperList(userId, pageNum,  sameUserList);
     }
 
     @PostMapping("/userDislike")

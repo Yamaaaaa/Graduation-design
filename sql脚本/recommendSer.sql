@@ -1,4 +1,4 @@
-DROP DATABASE RECOMMEND;
+
 CREATE DATABASE RECOMMEND;
 USE RECOMMEND;
 
@@ -87,17 +87,11 @@ CREATE TABLE USER_PAPER_SIMILARITY(
     primary key (user_id, paper_id)
 );
 
-CREATE TABLE USER_PAPER_SIMILARITY(
-    user_id int,
-    paper_id int,
-    relate_value float,
-    primary key (user_id, paper_id)
-);
 
 CREATE TABLE USER_SIMILARITY(
     user_id int,
     other_user int,
-    relateValue float,
+    relate_value float,
     primary key (user_id, other_user)
 );
 
