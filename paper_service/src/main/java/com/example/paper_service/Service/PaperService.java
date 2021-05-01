@@ -5,6 +5,7 @@ import com.example.paper_service.Dao.PaperHotDao;
 import com.example.paper_service.Dao.PaperSimpleDao;
 import com.example.paper_service.Dao.SysInfoDao;
 import com.example.paper_service.Entity.*;
+import com.example.paper_service.Util.UTF8Getter;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,8 +46,11 @@ public class PaperService {
 
 
     public List<PaperSimpleEntity> getPaperSimpleDataList(List<Integer> paperIDList) {
-
-        return paperSimpleDao.findByIdList(paperIDList);
+        List<PaperSimpleEntity> result = new ArrayList<>();
+        for(Integer paperId: paperIDList){
+            result.add(paperSimpleDao.findById((int)paperId));
+        }
+        return result;
     }
 
     public String getPaperData(int paper_id) {
@@ -332,13 +336,18 @@ public class PaperService {
     }
 
     public List<Integer> searchPaper(String searchText){
+
         searchText = "%" + searchText + "%";
+        //searchText = UTF8Getter.getUTF8XMLString(searchText);
         System.out.println("searchText:" + searchText);
         List<Integer> paperId = new ArrayList<>();
-        for(PaperEntity paperEntity: paperDao.findAllByTitleLikeOrAbstLike(searchText, searchText)){
-            paperId.add(paperEntity.getId());
-        }
-        return paperId;
+        //List<PaperEntity> paperEntityList = paperDao.findByTitleLike(searchText);
+        List<Integer> paperEntityList = paperDao.findByTitleLikeOrAbstLike(searchText, searchText);
+        System.out.println("resultSize:" + paperEntityList.size());
+//        for(PaperEntity paperEntity: paperEntityList){
+//            paperId.add(paperEntity.getId());
+//        }
+        return paperEntityList;
     }
 
     public List<PaperSimpleData> getUserHistoryData(int userId){
@@ -383,5 +392,23 @@ public class PaperService {
             paperSimpleDataList.add(paperSimpleData);
         }
         return paperSimpleDataList;
+    }
+
+    public List<PaperEntity> getPaperData(List<Integer> paperIdList){
+        List<PaperEntity> paperEntityList = new ArrayList<>();
+        for(Integer paperId: paperIdList){
+            paperEntityList.add(paperDao.findById((int)paperId));
+        }
+        return paperEntityList;
+    }
+
+    public void initPaperData(){
+        List<PaperEntity> paperEntityList = paperDao.findAll();
+        Random random = new Random();
+        for(PaperEntity paperEntity: paperEntityList){
+            paperEntity.setBrowseNum(random.nextInt(1000));
+            paperEntity.setRecentBrowseNum(random.nextInt(100));
+            paperDao.save(paperEntity);
+        }
     }
 }

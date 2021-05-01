@@ -21,7 +21,7 @@ public interface TagDao extends JpaRepository<TagEntity, Integer> {
 
     List<TagEntity> findAll();
 
-    List<TagEntity> findAllByNameContains(String name);
+    List<TagEntity> findAllByNameLike(String name);
     @Modifying
     @Transactional
     void deleteByName(String name);

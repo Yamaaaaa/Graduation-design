@@ -5,6 +5,7 @@ import com.example.tag_service.Dao.TagDao;
 import com.example.tag_service.Dao.TagPaperDao;
 import com.example.tag_service.Entity.SameTagEntity;
 import com.example.tag_service.Entity.TagEntity;
+import com.example.tag_service.Entity.TagName;
 import com.example.tag_service.Entity.TagPaperEntity;
 import com.example.tag_service.Util.HttpJob;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -76,8 +77,11 @@ public class TagService {
     }
 
     @Transactional
-    public void checkTagPaper(int paperId, Set<String> tags){
-        for(String tag: tags){
+    public void checkTagPaper(int paperId, List<TagName> tags){
+        List<String> tagData = new ArrayList<>();
+        for(TagName tagName: tags){
+            String tag = tagName.getTagName();
+            tagData.add(tag);
             tagPaperDao.deleteByPaperIdAndTagName(paperId, tag);
             TagEntity tagEntity;
             if(tagDao.existsByName(tag)){
@@ -92,8 +96,8 @@ public class TagService {
         }
         Map<String, Object> map = new HashMap<>();
         map.put("paperId", paperId);
-        map.put("tags", tags);
-        restTemplate.postForObject(addPaperTagUrl, map, void.class);
+        map.put("tags", tagData);
+        restTemplate.postForObject(recommendService + addPaperTagUrl, map, void.class);
     }
 
     public void refreshTag(){
@@ -114,8 +118,9 @@ public class TagService {
 
     public List<TagEntity> searchTag(String searchText){
         System.out.print("searchText: "+searchText);
+        searchText = "%" + searchText + "%";
         List<TagEntity> searchResult = new ArrayList<>();
-        searchResult.addAll(tagDao.findAllByNameContains(searchText));
+        searchResult.addAll(tagDao.findAllByNameLike(searchText));
         List<String> tagIdList = sameTagDao.findDistinctByNameContains(searchText);
         for(String tagId: tagIdList){
             searchResult.add(tagDao.findByName(tagId));
@@ -165,6 +170,35 @@ public class TagService {
             map.get(paperId).add(tag);
         }
         restTemplate.postForObject(recommendService + initTag, map, void.class);
+    }
+
+    public List<TagPaperEntity> getTagPaperData(){
+        return tagPaperDao.findAll();
+    }
+
+    //对添加标签、标签数据进行初始化
+    public void initData(){
+        List<TagEntity> tagEntities = tagDao.findAll();
+        Random random = new Random();
+        for(int i=0; i<30; ++i){
+            int paperId = random.nextInt(287) + 1;
+            for(int j=0; j<5; ++j){
+                int tagIndex = random.nextInt(32);
+                TagPaperEntity tagPaperEntity = new TagPaperEntity();
+                tagPaperEntity.setPaperId(paperId);
+                tagPaperEntity.setTagName(tagEntities.get(tagIndex).getName());
+                tagPaperDao.save(tagPaperEntity);
+            }
+        }
+
+        for(TagEntity tagEntity: tagEntities){
+            tagEntity.setUsedNum(random.nextInt(100));
+            Date date = new Date();
+            int gap = random.nextInt(20);
+            date.setDate(date.getDate() - gap);
+            tagEntity.setLastActiveTime(date);
+            tagDao.save(tagEntity);
+        }
     }
 }
 

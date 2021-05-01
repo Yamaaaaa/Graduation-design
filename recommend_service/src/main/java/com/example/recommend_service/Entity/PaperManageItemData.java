@@ -6,9 +6,18 @@ public class PaperManageItemData {
     int paperId;
     String paperTitle;
     int paperBrowse;
+    int addTagNum;
     int paperHot;
     private List<TopicSimpleData> paperTopics;
     private List<PaperTagData> paperTags;
+
+    public int getAddTagNum() {
+        return addTagNum;
+    }
+
+    public void setAddTagNum(int addTagNum) {
+        this.addTagNum = addTagNum;
+    }
 
     public int getPaperId() {
         return paperId;

@@ -1,4 +1,4 @@
-package com.example.paper_service.Entity;
+package com.example.recommend_service.Entity;
 
 import javax.persistence.*;
 import java.util.Objects;

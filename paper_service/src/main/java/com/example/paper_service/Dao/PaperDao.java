@@ -18,5 +18,8 @@ public interface PaperDao extends JpaRepository<PaperEntity, Integer>{
     @Query(nativeQuery = true, value="select id from paper")
     List<Integer> findAllId();
 
-    List<PaperEntity> findAllByTitleLikeOrAbstLike(String searchText1, String searchText2);
+    @Query(nativeQuery = true, value = "select id from paper where title like ?1 or abst like ?2")
+    List<Integer> findByTitleLikeOrAbstLike(String searchText1, String searchText2);
+    List<PaperEntity> findByTitleLike(String searchText1);
+
 }

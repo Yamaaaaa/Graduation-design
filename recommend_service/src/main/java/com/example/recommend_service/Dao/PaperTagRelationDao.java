@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Set;
 
 public interface PaperTagRelationDao extends JpaRepository<PaperTagRelationEntity, PaperTagRelationEntityPK> {
+    List<PaperTagRelationEntity> findAllByPaperId(int paperId);
     List<PaperTagRelationEntity> findTop6ByPaperIdOrderByDegreeDesc(int paperId);
     void deleteByTagName(String tagName);
     List<PaperTagRelationEntity> findByTagName(String tagName);

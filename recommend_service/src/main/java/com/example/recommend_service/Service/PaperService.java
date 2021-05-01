@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
+import java.awt.print.Paper;
 import java.io.*;
 import java.lang.reflect.Type;
 import java.util.*;
@@ -29,8 +30,10 @@ public class PaperService {
     @Autowired
     private RestTemplate restTemplate;
 
-    String tagServiceUrl = "tagServiceUrl";
-    String getTagNameUrl = "getTagNameUrl";
+    String tagServiceUrl = "http://localhost:50003/";
+    String paperServiceUrl = "http://localhost:50001/";
+    String getPaperData = "paperData";
+    String getTagPaperData = "getTagPaperData";
     String updatePaperTagIndex = "updatePaperTagIndex";
 
     public List<String> getPaperRecommendTag(Integer paper_id){
@@ -158,13 +161,16 @@ public class PaperService {
                 loop += nTopics;
             }
             System.out.println("loop:" + loop);
+            int tagIndex = 0;
+            int topicId = 0;
             for(int i=0; i<loop; ++i){
                 line = input.readLine();
+                System.out.println("i = " + i + "   " + "line："+line);
                 if(i%(endNum+1)==0){
                     line = line.substring(2, line.length());
                 }else if(i == loop - 1){
                     line = line.substring(0, line.length()-2);
-                }else if(i%endNum == 0){
+                }else if((i + 1)%(endNum + 1) == 0){
                     line = line.substring(0, line.length()-1);
                 }
                 System.out.println("计算结果："+line);
@@ -174,10 +180,16 @@ public class PaperService {
                     loop2 = tagIdList.size();
                 }
                 for(int j=0; j<loop2; ++j){
-                    if(j <= groupNums.length){
+                    if(j >= groupNums.length){
                         break;
                     }
-                    topicTagRelationDao.save(new TopicTagRelationEntity(i, tagIdList.get(j), Float.parseFloat(groupNums[j])));
+                    System.out.println("tagIndex："+tagIndex);
+                    topicTagRelationDao.save(new TopicTagRelationEntity(topicId, tagIdList.get(tagIndex), Float.parseFloat(groupNums[j])));
+                    ++tagIndex;
+                    if(tagIndex >= tagIdList.size()) {
+                        topicId++;
+                        tagIndex -= tagIdList.size();
+                    }
                 }
             }
             input.close();
@@ -239,5 +251,97 @@ public class PaperService {
         for(Map.Entry<Integer, List<String>> tagPaper: tagPaperData.entrySet()){
             addPaperTag(tagPaper.getKey(), tagPaper.getValue());
         }
+    }
+
+    public PaperReviewData getManagePaperInfo(int paperId){
+        PaperReviewData paperReviewData = new PaperReviewData();
+        List<Integer> paperIdList = new ArrayList<>();
+        Gson gson = new Gson();
+        paperIdList.add(paperId);
+        List<PaperEntity> paperEntityList = new ArrayList<>();
+        Type type1 = new TypeToken<List<PaperEntity>>(){}.getType();
+        String res1 = restTemplate.postForObject(paperServiceUrl + getPaperData, paperIdList, String.class);
+        paperEntityList = gson.fromJson(res1, type1);
+        PaperEntity paperEntity = paperEntityList.get(0);
+        paperReviewData.setPaperId(paperEntity.getId());
+        paperReviewData.setPaperTitle(paperEntity.getTitle());
+        paperReviewData.setPaperAbstract(paperEntity.getAbst());
+
+        paperReviewData.setPaperTopicRankData(getPaperTopicRankData(paperEntity.getId()));
+        paperReviewData.setPaperTagRankData(getPaperTagRankData(paperEntity.getId()));
+        paperReviewData.setTopicTagRelateData(getTopicTagRelateData(paperReviewData.getPaperTopicRankData().getTopicsName(), paperReviewData.getPaperTagRankData().getTopicsName()));
+        return paperReviewData;
+    }
+
+    public List<PaperReviewData> getPaperReviewData(){
+        Gson gson = new Gson();
+        List<TagPaperEntity> tagPaperEntities = new ArrayList<>();
+        Type type = new TypeToken<List<TagPaperEntity>>(){}.getType();
+        String res = restTemplate.getForObject(tagServiceUrl + getTagPaperData, String.class);
+        tagPaperEntities = gson.fromJson(res, type);
+
+        List<PaperReviewData> paperReviewDataList = new ArrayList<>();
+        Set<Integer> paperIdList = new HashSet<>();
+        Map<Integer, List<TagName>> paperUncheckTag = new HashMap<>();
+        for(TagPaperEntity tagPaperEntity: tagPaperEntities){
+            int paperId = tagPaperEntity.getPaperId();
+            paperIdList.add(paperId);
+            if(!paperUncheckTag.containsKey(paperId)){
+                paperUncheckTag.put(paperId, new ArrayList<>());
+            }
+            TagName tagName = new TagName();
+            tagName.setTagName(tagPaperEntity.getTagName());
+            paperUncheckTag.get(paperId).add(tagName);
+        }
+
+        List<PaperEntity> paperEntityList = new ArrayList<>();
+        Type type1 = new TypeToken<List<PaperEntity>>(){}.getType();
+        String res1 = restTemplate.postForObject(paperServiceUrl + getPaperData, paperIdList, String.class);
+        paperEntityList = gson.fromJson(res1, type1);
+        for(PaperEntity paperEntity: paperEntityList){
+            PaperReviewData paperReviewData = new PaperReviewData();
+            paperReviewData.setPaperId(paperEntity.getId());
+            paperReviewData.setPaperTitle(paperEntity.getTitle());
+            paperReviewData.setPaperAbstract(paperEntity.getAbst());
+
+            paperReviewData.setUncheckTag(paperUncheckTag.get(paperEntity.getId()));
+
+            paperReviewData.setPaperTopicRankData(getPaperTopicRankData(paperEntity.getId()));
+            paperReviewData.setPaperTagRankData(getPaperTagRankData(paperEntity.getId()));
+            paperReviewData.setTopicTagRelateData(getTopicTagRelateData(paperReviewData.getPaperTopicRankData().getTopicsName(), paperReviewData.getPaperTagRankData().getTopicsName()));
+            paperReviewDataList.add(paperReviewData);
+        }
+        return paperReviewDataList;
+    }
+
+    public PaperTopicRankData getPaperTagRankData(int paperId){
+        PaperTopicRankData paperTagRankData = new PaperTopicRankData();
+        List<PaperTagRelationEntity> paperTagRelationEntities = paperTagRelationDao.findAllByPaperId(paperId);
+        List<String> tags = new ArrayList<>();
+        List<Float> values = new ArrayList<>();
+        for(PaperTagRelationEntity paperTagRelationEntity: paperTagRelationEntities){
+            tags.add(paperTagRelationEntity.getTagName());
+            values.add(paperTagRelationEntity.getDegree());
+        }
+        paperTagRankData.setTopicsName(tags);
+        paperTagRankData.setTopicsRelate(values);
+        return paperTagRankData;
+    }
+
+    public TopicTagRelateData getTopicTagRelateData(List<String> topics, List<String> tags){
+        TopicTagRelateData topicTagRelateData = new TopicTagRelateData();
+        topicTagRelateData.setTopics(topics);
+        topicTagRelateData.setTags(tags);
+        List<List<Float>> values = new ArrayList<>();
+        for(String tag: tags){
+            List<Float> temp = new ArrayList<>();
+            for(String topic: topics){
+                int topicId = topicDao.findByName(topic).getId();
+                temp.add(topicTagRelationDao.findByTopicIdAndTagName(topicId, tag).getDegree());
+            }
+            values.add(temp);
+        }
+        topicTagRelateData.setValues(values);
+        return topicTagRelateData;
     }
 }

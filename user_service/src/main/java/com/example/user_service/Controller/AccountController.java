@@ -12,6 +12,7 @@ import java.util.Map;
 import java.util.Set;
 
 @RestController
+@CrossOrigin
 public class AccountController {
     @Autowired
     AccountService accountService;

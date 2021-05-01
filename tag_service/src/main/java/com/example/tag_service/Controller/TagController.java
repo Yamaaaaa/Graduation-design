@@ -1,13 +1,18 @@
 package com.example.tag_service.Controller;
 
 import com.example.tag_service.Entity.TagEntity;
+import com.example.tag_service.Entity.TagName;
+import com.example.tag_service.Entity.TagPaperEntity;
 import com.example.tag_service.Servcie.TagService;
+import com.google.gson.Gson;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.lang.reflect.Type;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import com.google.gson.reflect.TypeToken;
 
 @RestController
 @CrossOrigin
@@ -39,7 +44,7 @@ public class TagController {
     }
 
     //获取同义词
-    @GetMapping("/SameTagData")
+    @GetMapping("/sameTagData")
     List<String> getSameTagData(@RequestParam String tagId){
         return tagService.getSameTagData(tagId);
     }
@@ -50,12 +55,22 @@ public class TagController {
         return tagService.getUncheckTag(paperId);
     }
 
+    @GetMapping("/getTagPaperData")
+    List<TagPaperEntity> getTagPaperData(){
+        return tagService.getTagPaperData();
+    }
+
     //审核论文Tag
     @PostMapping("/checkTagPaper")
-    void checkTagPaper(@RequestBody Map<Integer, Set<String>> paperTagData){
-        for(Map.Entry<Integer, Set<String>> entry: paperTagData.entrySet()) {
-            tagService.checkTagPaper(entry.getKey(), entry.getValue());
-        }
+    void checkTagPaper(@RequestBody Map<String, Object> data){
+        int paperId = (int)data.get("paperId");
+        Gson gson = new Gson();
+        List<TagName> tags = (List<TagName>)data.get("tags");
+        Type type = new TypeToken<List<TagName>>(){}.getType();
+        String temp = gson.toJson(tags);
+        System.out.println("tags: " + temp);
+        tags = gson.fromJson(temp, type);
+        tagService.checkTagPaper(paperId, tags);
     }
 
     //为论文添加tag
@@ -80,4 +95,8 @@ public class TagController {
         return tagService.getAllTag();
     }
 
+    @GetMapping("/initData")
+    void initData(){
+        tagService.initData();
+    }
 }

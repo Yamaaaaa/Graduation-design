@@ -12,4 +12,5 @@ public interface TopicTagRelationDao extends JpaRepository<TopicTagRelationEntit
     List<TopicTagRelationEntity> findByTopicId(int topicId);
     boolean existsByTopicIdAndTagNameAndDegreeGreaterThanEqual(int topicId, String tagName, double degree);
     TopicTagRelationEntity findTopByTagNameOrderByDegreeDesc(String tagName);
+    TopicTagRelationEntity findByTopicIdAndTagName(int topicId, String tagName);
 }

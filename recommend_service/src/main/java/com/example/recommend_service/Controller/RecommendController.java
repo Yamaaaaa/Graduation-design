@@ -4,15 +4,19 @@ import com.example.recommend_service.Entity.*;
 import com.example.recommend_service.Service.PaperService;
 import com.example.recommend_service.Service.TagService;
 import com.example.recommend_service.Service.UserService;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 @RestController
+@CrossOrigin
 public class RecommendController {
     @Autowired
     PaperService paperService;
@@ -59,12 +63,19 @@ public class RecommendController {
     }
 
     @PostMapping("/addPaperTag")
-    void addPaperTag(@RequestBody int paperId, @RequestBody List<String> tags){
+    void addPaperTag(@RequestBody Map<String, Object> data){
+        int paperId = (int)data.get("paperId");
+        Gson gson = new Gson();
+        List<String> tags = (List<String>)data.get("tags");
+        String temp = gson.toJson(tags);
+        Type type = new TypeToken<List<String>>(){}.getType();
+        tags = gson.fromJson(temp, type);
         paperService.addPaperTag(paperId, tags);
     }
 
     @GetMapping("/cluster")
     void cluster(@RequestParam Integer topicNum){
+        tagService.deleteTopicData();
         paperService.IdaTopicCluster(topicNum);
         tagService.refreshTopic(topicNum);
     }
@@ -85,11 +96,6 @@ public class RecommendController {
     @GetMapping("/getTopicTagData")
     List<TopicTagData> getTopicTagData(){
         return tagService.getTopicTagData();
-    }
-
-    @GetMapping("/getTagRelatePaper")
-    List<PaperSimpleEntity> getTagRelatePaper(@RequestParam String tagId){
-        return tagService.getTagRelatePaper(tagId);
     }
 
     @GetMapping("/getTopics")
@@ -122,10 +128,24 @@ public class RecommendController {
         return userService.getSquarePaper(userId, pageNum);
     }
 
-    @GetMapping("/getPaperTopicRankData")
-    PaperTopicRankData getPaperTopicRankData(@RequestParam int paperId){
-        return paperService.getPaperTopicRankData(paperId);
+    @GetMapping("/getPaperReviewData")
+    List<PaperReviewData> getPaperReviewData(){
+        return paperService.getPaperReviewData();
     }
+
+    @GetMapping("/getManagePaperInfo")
+    PaperReviewData getManagePaperInfo(@RequestParam int paperId){
+        return paperService.getManagePaperInfo(paperId);
+    }
+
+    @PostMapping("/getTagManageData")
+    TagManageData getTagManageData(@RequestBody TagName tagName){
+        return tagService.getTagManageData(tagName.getTagName());
+    }
+//    @GetMapping("/getPaperTopicRankData")
+//    PaperTopicRankData getPaperTopicRankData(@RequestParam int paperId){
+//        return paperService.getPaperTopicRankData(paperId);
+//    }
 
     @GetMapping("/getPaperManageData")
     PaperManageData getPaperManageData(){
@@ -151,5 +171,12 @@ public class RecommendController {
     @PostMapping("/getPaperTagData")
     Map<Integer, List<String>> getPaperData(@RequestBody List<Integer> paperIdList){
         return paperService.getPaperTagData(paperIdList);
+    }
+    //搜索论文
+    @PostMapping("/searchPaperForManager")
+    public PaperManageData searchPaperForManager(@RequestBody Map<String, Object> searchText){
+        String search = (String)searchText.get("searchText");
+        System.out.println("searchText = " + search);
+        return tagService.searchPaper(search);
     }
 }

@@ -10,19 +10,20 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
+@CrossOrigin
 public class PaperController {
     @Autowired
     PaperService paperService;
-
-    @GetMapping("/paperData")
-    public String getPaper(@RequestParam int paper_id){
-        return paperService.getPaperData(paper_id);
-    }
-
     //获取论文简略信息
     @PostMapping("/paperSimpleData")
     public List<PaperSimpleEntity> getPaperSimpleData(@RequestBody List<Integer> paperIdList){
         return paperService.getPaperSimpleDataList(paperIdList);
+    }
+
+    //获取论文信息
+    @PostMapping("/paperData")
+    public List<PaperEntity> getPaperData(@RequestBody List<Integer> paperIdList){
+        return paperService.getPaperData(paperIdList);
     }
 
     //获取热榜论文
@@ -56,13 +57,13 @@ public class PaperController {
     }
 
     //搜索论文
-    @GetMapping("/searchPaperForManager")
-    public List<PaperEntity> searchPaperForManager(@RequestParam String searchText) throws Exception {
-        return paperService.getManagePaperPage(paperService.searchPaper(searchText));
+    @PostMapping("/searchPaperForManager")
+    public List<PaperSimpleEntity> searchPaperForManager(@RequestBody String searchText){
+        return paperService.getPaperSimpleDataList(paperService.searchPaper(searchText));
     }
 
-    @GetMapping("/searchPaper")
-    public List<PaperSimpleData> searchPaper(@RequestParam String searchText){
+    @PostMapping("/searchPaper")
+    public List<PaperSimpleData> searchPaper(@RequestBody String searchText){
         return paperService.searchPaperForUser(searchText);
     }
 
@@ -71,4 +72,12 @@ public class PaperController {
         return paperService.userSharePaper(userId);
     }
 
+    @GetMapping("initPaperData")
+    public void initPaperData(){
+        paperService.initPaperData();
+    }
+//    @PostMapping("/test")
+//    public List<Integer> test(@RequestBody String str){
+//        return paperService.searchPaper(str);
+//    }
 }
